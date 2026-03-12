@@ -71,3 +71,9 @@
 - **Learnings for future iterations:**
   - Keep the first CI pass focused on root package checks when example apps need extra env wiring; that gives strong signal without dragging secrets into baseline validation.
 ---
+## 2026-03-12 20:08 - readme-badges
+- Added only functional README badges: CI status, MIT license, and TypeScript. Skipped the npm version badge because the package is not published yet.
+- Files changed: `README.md`
+- **Learnings for future iterations:**
+  - README badges should reflect real, externally verifiable signals; do not add npm version badges before publication exists.
+---
