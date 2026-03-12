@@ -1,6 +1,7 @@
 import { createCheckout } from "./core/checkout.js";
 import { createCreemClient } from "./core/creem-client.js";
 import { createDataFastClient } from "./core/datafast-client.js";
+import { InvalidCreemSignatureError } from "./core/errors.js";
 import { resolveLogger } from "./core/logger.js";
 import { extractHeader, verifyCreemSignature } from "./core/signature.js";
 import { handleWebhook } from "./core/webhook.js";
@@ -11,7 +12,6 @@ import type {
 } from "./core/types.js";
 
 export type {
-  BrowserTrackingResult,
   CheckoutCustomerInput,
   CheckoutCustomFieldInput,
   CheckoutMetadata,
@@ -22,28 +22,15 @@ export type {
   CreemDataFastOptions,
   DataFastPaymentPayload,
   DataFastTracking,
-  ExpressLikeRequest,
-  ExpressLikeResponse,
-  ExpressWebhookHandlerOptions,
   HandleWebhookParams,
   HandleWebhookResult,
   HeadersLike,
   IdempotencyStore,
   LoggerLike,
   MetadataValue,
-  NextWebhookHandlerOptions,
   RequestLike,
   SupportedWebhookEvent
 } from "./core/types.js";
-
-export {
-  CreemDataFastError,
-  DataFastRequestError,
-  InvalidCreemSignatureError,
-  MissingTrackingError,
-  TransactionHydrationError,
-  UnsupportedWebhookEventError
-} from "./core/errors.js";
 
 export function createCreemDataFast(
   options: CreemDataFastOptions
@@ -78,9 +65,11 @@ export function createCreemDataFast(
     },
     verifyWebhookSignature(rawBody: string, headers: HeadersLike): boolean {
       const signature = extractHeader(headers, "creem-signature");
-      return signature
-        ? verifyCreemSignature(rawBody, options.creemWebhookSecret, signature)
-        : false;
+      if (!signature) {
+        throw new InvalidCreemSignatureError("Missing creem-signature header.");
+      }
+
+      return verifyCreemSignature(rawBody, options.creemWebhookSecret, signature);
     }
   };
 }

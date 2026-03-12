@@ -4,6 +4,7 @@
 - `subscription.paid` should hydrate `last_transaction_id` when available and only fall back to product pricing on hydration failure.
 - Creem webhook `object.customer` fields are polymorphic; preserve `customer_id` whether the payload sends a hydrated object or a raw string id.
 - The Next example maps `creem-datafast` subpaths to `../src/*` via TS paths so it can typecheck and build without depending on generated `dist/`.
+- Keep `creem-datafast` root exports limited to the framework-agnostic core; adapter/browser APIs and their types should stay on subpath entrypoints.
 
 ## 2026-03-12 18:45 - setup
 - Initialized the `creem-datafast` package from scratch with strict TypeScript, `tsup`, `vitest`, and a pnpm workspace for the example app.
@@ -29,4 +30,11 @@
 - **Learnings for future iterations:**
   - Creem webhook fixtures should cover both enriched and minimal payload shapes for shared fields like `customer`.
   - Keep mapper helpers shape-aware so optional enriched fields can be omitted without dropping required identifiers.
+---
+## 2026-03-12 19:10 - plan-audit-alignment
+- Narrowed the root package surface back to the framework-agnostic API, made `verifyWebhookSignature()` throw `InvalidCreemSignatureError` when `creem-signature` is missing, kept the memory idempotency store internal, added the missing DataFast `500` test, and aligned the Next example route with `createNextWebhookHandler(client)`.
+- Files changed: `src/index.ts`, `src/core/idempotency.ts`, `tests/unit/signature.test.ts`, `tests/unit/datafast-client.test.ts`, `tests/unit/webhook.test.ts`, `example-next/app/api/webhook/creem/route.ts`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Public API drift is easiest to catch by checking the built package exports, not just source files.
+  - If an example must keep env lookup lazy for build-time safety, wrap the client methods lazily instead of changing the adapter contract.
 ---

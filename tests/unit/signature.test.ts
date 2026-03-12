@@ -1,5 +1,6 @@
 import { createHmac } from "node:crypto";
 
+import { createCreemDataFast } from "../../src/index.js";
 import { InvalidCreemSignatureError } from "../../src/core/errors.js";
 import { extractHeader, verifyCreemSignature } from "../../src/core/signature.js";
 
@@ -11,6 +12,20 @@ function sign(body: string): string {
 }
 
 describe("signature", () => {
+  const client = createCreemDataFast({
+    creemClient: {
+      checkouts: {
+        create: vi.fn()
+      },
+      transactions: {
+        getById: vi.fn()
+      }
+    },
+    creemWebhookSecret: secret,
+    datafastApiKey: "datafast_key",
+    fetch: vi.fn() as typeof fetch
+  });
+
   it("validates a correct signature", () => {
     expect(verifyCreemSignature(rawBody, secret, sign(rawBody))).toBe(true);
   });
@@ -24,12 +39,8 @@ describe("signature", () => {
   });
 
   it("surfaces missing signature through the higher-level API", () => {
-    const signature = extractHeader({}, "creem-signature");
-    expect(signature).toBeUndefined();
     expect(() => {
-      if (!signature) {
-        throw new InvalidCreemSignatureError("Missing creem-signature header.");
-      }
-    }).toThrow(InvalidCreemSignatureError);
+      client.verifyWebhookSignature(rawBody, {});
+    }).toThrow("Missing creem-signature header.");
   });
 });

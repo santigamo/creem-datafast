@@ -5,11 +5,33 @@ import subscriptionPaidFixture from "../fixtures/subscription-paid.json";
 import transactionFixture from "../fixtures/transaction.json";
 
 import { InvalidCreemSignatureError } from "../../src/core/errors.js";
-import { MemoryIdempotencyStore } from "../../src/core/idempotency.js";
 import { noopLogger } from "../../src/core/logger.js";
 import { handleWebhook } from "../../src/core/webhook.js";
+import type { IdempotencyStore } from "../../src/core/types.js";
 
 const webhookSecret = "creem_webhook_secret";
+
+class TestMemoryIdempotencyStore implements IdempotencyStore {
+  private readonly values = new Map<string, number>();
+
+  async has(key: string): Promise<boolean> {
+    const expiresAt = this.values.get(key);
+    if (expiresAt === undefined) {
+      return false;
+    }
+
+    if (Date.now() > expiresAt) {
+      this.values.delete(key);
+      return false;
+    }
+
+    return true;
+  }
+
+  async set(key: string, ttlSeconds = 86400): Promise<void> {
+    this.values.set(key, Date.now() + ttlSeconds * 1000);
+  }
+}
 
 function sign(rawBody: string): string {
   return createHmac("sha256", webhookSecret).update(rawBody).digest("hex");
@@ -40,7 +62,7 @@ describe("handleWebhook", () => {
         sendPayment: vi.fn()
       },
       hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: new MemoryIdempotencyStore(),
+      idempotencyStore: new TestMemoryIdempotencyStore(),
       idempotencyTtlSeconds: 3600,
       logger: noopLogger
     });
@@ -55,7 +77,7 @@ describe("handleWebhook", () => {
   });
 
   it("ignores duplicate events", async () => {
-    const store = new MemoryIdempotencyStore();
+    const store = new TestMemoryIdempotencyStore();
     await store.set("creem:event:evt_duplicate", 3600);
 
     const result = await handleWebhook(createParams({
@@ -101,7 +123,7 @@ describe("handleWebhook", () => {
         sendPayment: vi.fn()
       },
       hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: new MemoryIdempotencyStore(),
+      idempotencyStore: new TestMemoryIdempotencyStore(),
       idempotencyTtlSeconds: 3600,
       logger: noopLogger
     })).rejects.toThrow(InvalidCreemSignatureError);
@@ -120,14 +142,14 @@ describe("handleWebhook", () => {
         })
       },
       hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: new MemoryIdempotencyStore(),
+      idempotencyStore: new TestMemoryIdempotencyStore(),
       idempotencyTtlSeconds: 3600,
       logger: noopLogger
     })).rejects.toThrow("DataFast failed");
   });
 
   it("marks events as processed after a successful send", async () => {
-    const store = new MemoryIdempotencyStore();
+    const store = new TestMemoryIdempotencyStore();
 
     const result = await handleWebhook(createParams(checkoutCompletedFixture), {
       creem: {
@@ -159,7 +181,7 @@ describe("handleWebhook", () => {
         sendPayment: vi.fn(async (payload) => payload)
       },
       hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: new MemoryIdempotencyStore(),
+      idempotencyStore: new TestMemoryIdempotencyStore(),
       idempotencyTtlSeconds: 3600,
       logger: noopLogger
     });

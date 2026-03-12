@@ -10,7 +10,7 @@ class NoopIdempotencyStore implements IdempotencyStore {
   }
 }
 
-export class MemoryIdempotencyStore implements IdempotencyStore {
+class MemoryIdempotencyStore implements IdempotencyStore {
   private readonly values = new Map<string, number>();
 
   async has(key: string): Promise<boolean> {
