@@ -1,0 +1,9 @@
+# AGENTS.md
+
+## Repository Notes
+
+- The publishable package lives at the repository root; the runnable merchant example lives in `example-next/`.
+- Webhook verification depends on the exact raw body. For Express integrations use `express.raw({ type: "application/json" })`, not `express.json()`.
+- `subscription.paid` should prefer hydrated transaction data from `last_transaction_id` and only fall back to `product.price` / `product.currency` if hydration fails.
+- The Next.js example uses TypeScript path aliases to point `creem-datafast` subpaths at `../src/*`, so example builds do not depend on prebuilt `dist/`.
+- The default idempotency behavior is intentionally minimal; production consumers should pass a real `idempotencyStore` if they need dedupe across processes.

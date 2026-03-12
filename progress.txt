@@ -1,0 +1,23 @@
+## Codebase Patterns
+- Verify Creem webhooks against the raw body and keep adapters transport-only; Express integrations must use `express.raw({ type: "application/json" })`.
+- Keep tracking precedence explicit: `params.tracking` overrides metadata tracking keys, metadata tracking keys override cookies, and only `datafast_visitor_id` / `datafast_session_id` are ever injected.
+- `subscription.paid` should hydrate `last_transaction_id` when available and only fall back to product pricing on hydration failure.
+- The Next example maps `creem-datafast` subpaths to `../src/*` via TS paths so it can typecheck and build without depending on generated `dist/`.
+
+## 2026-03-12 18:45 - setup
+- Initialized the `creem-datafast` package from scratch with strict TypeScript, `tsup`, `vitest`, and a pnpm workspace for the example app.
+- Files changed: `package.json`, `pnpm-workspace.yaml`, `tsconfig.json`, `tsup.config.ts`, `vitest.config.ts`, `.gitignore`, `LICENSE`
+- **Learnings for future iterations:**
+  - This repo keeps the publishable package at the root and the runnable Next example in `example-next/`.
+  - The package targets Node 18+, so framework examples must avoid dependencies that force Node 20+.
+---
+## 2026-03-12 18:42 - v1
+- Implemented the full `creem-datafast` v1 package: checkout tracking injection, manual Creem webhook verification, DataFast forwarding, Next.js and Express adapters, and browser helpers.
+- Added fixtures and unit coverage for cookies, metadata precedence, amount normalization, signature verification, DataFast requests, event mapping, checkout creation, webhook orchestration, adapters, and browser helpers.
+- Added a runnable `example-next` app plus root and example READMEs.
+- Files changed: `src/**`, `tests/**`, `README.md`, `example-next/**`, `docs/plans/2026-03-12-creem-datafast-design.md`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - The public factory stays small; most behavior should remain in pure/internal modules under `src/core/` so adapters stay thin.
+  - Webhook idempotency defaults to a no-op store, which keeps the package storage-free but means production callers should inject a durable store when they need cross-process dedupe.
+  - The example app can log forwarded DataFast payloads by wrapping `fetch` instead of complicating the package surface with dev-only hooks.
+---

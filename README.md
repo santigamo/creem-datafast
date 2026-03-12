@@ -1,0 +1,186 @@
+# creem-datafast
+
+Wraps the official `creem` Core SDK and forwards the payment events you care about to DataFast. It gives you a Framework-agnostic core, Automatically captures DataFast tracking cookies during checkout creation, and ships with Next.js and Express adapters included.
+
+## What It Does
+
+`creem-datafast` focuses on three jobs:
+
+- Create Creem checkouts without losing merchant metadata.
+- Read `datafast_visitor_id` and `datafast_session_id` from the request and inject them into Creem checkout metadata.
+- Verify Creem webhooks with the raw body, map supported payments, and forward them to DataFast.
+
+## Why It Exists
+
+Creem exposes checkout metadata, webhook delivery, and the official Core SDK. DataFast expects a payment payload with transaction details and visitor context. This package keeps that glue small and explicit instead of forcing each merchant to rebuild cookie capture, signature verification, and event mapping from scratch.
+
+## Installation
+
+```bash
+pnpm add creem-datafast
+```
+
+Internally the package Wraps the official `creem` Core SDK, so you do not need to install `creem` separately in a normal consumer app.
+
+## Quickstart Next.js
+
+Install the package, create a shared client, then use the included route handler adapter.
+
+```ts
+// lib/creem-datafast.ts
+import { createCreemDataFast } from "creem-datafast";
+
+export const creemDataFast = createCreemDataFast({
+  creemApiKey: process.env.CREEM_API_KEY!,
+  creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  datafastApiKey: process.env.DATAFAST_API_KEY!,
+  testMode: true
+});
+```
+
+```ts
+// app/api/checkout/route.ts
+import { NextResponse } from "next/server";
+import { creemDataFast } from "@/lib/creem-datafast";
+
+export const runtime = "nodejs";
+
+export async function POST(request: Request) {
+  const { checkoutUrl } = await creemDataFast.createCheckout(
+    {
+      productId: process.env.CREEM_PRODUCT_ID!,
+      successUrl: `${process.env.APP_BASE_URL!}/success`
+    },
+    { request }
+  );
+
+  return NextResponse.redirect(checkoutUrl, { status: 303 });
+}
+```
+
+```ts
+// app/api/webhook/creem/route.ts
+import { createNextWebhookHandler } from "creem-datafast/next";
+import { creemDataFast } from "@/lib/creem-datafast";
+
+export const runtime = "nodejs";
+export const POST = createNextWebhookHandler(creemDataFast);
+```
+
+## Quickstart Express
+
+Use the Framework-agnostic core in your app layer and keep the webhook route on raw body middleware.
+
+```ts
+import express from "express";
+import { createCreemDataFast } from "creem-datafast";
+import { createExpressWebhookHandler } from "creem-datafast/express";
+
+const app = express();
+const creemDataFast = createCreemDataFast({
+  creemApiKey: process.env.CREEM_API_KEY!,
+  creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  datafastApiKey: process.env.DATAFAST_API_KEY!,
+  testMode: true
+});
+
+app.post("/api/checkout", async (req, res) => {
+  const { checkoutUrl } = await creemDataFast.createCheckout(
+    {
+      productId: process.env.CREEM_PRODUCT_ID!,
+      successUrl: `${process.env.APP_BASE_URL!}/success`
+    },
+    {
+      request: { headers: req.headers }
+    }
+  );
+
+  res.redirect(303, checkoutUrl);
+});
+
+app.post(
+  "/api/webhook/creem",
+  express.raw({ type: "application/json" }),
+  createExpressWebhookHandler(creemDataFast)
+);
+```
+
+## Client-Side Helper
+
+Use the browser helper when you want to append tracking explicitly to your own backend URL before the checkout request.
+
+```ts
+import { appendDataFastTracking, getDataFastTracking } from "creem-datafast/client";
+
+const tracking = getDataFastTracking();
+const checkoutEndpoint = appendDataFastTracking("/api/checkout", tracking);
+```
+
+## How The Flow Works
+
+1. Your backend calls `createCheckout()` with the incoming `Request` or cookie header.
+2. The package injects `datafast_visitor_id` and `datafast_session_id` into Creem metadata without dropping the rest of your metadata.
+3. Creem redirects the customer to `checkoutUrl`.
+4. Creem sends `checkout.completed` and `subscription.paid` webhooks back to your server.
+5. `handleWebhook()` verifies `creem-signature`, deduplicates by event id, maps the payload, and forwards the payment to DataFast.
+
+## Environment Variables
+
+- `CREEM_API_KEY`: Creem Core SDK API key.
+- `CREEM_WEBHOOK_SECRET`: secret used to validate `creem-signature`.
+- `DATAFAST_API_KEY`: bearer token for DataFast payments.
+- `CREEM_PRODUCT_ID`: product used by your checkout endpoint.
+- `APP_BASE_URL`: base URL for success redirects and local webhook setup.
+- `CREEM_TEST_MODE`: set `true` to use `https://test-api.creem.io`.
+
+## Testing Local
+
+Package checks:
+
+```bash
+pnpm build
+pnpm test
+pnpm typecheck
+```
+
+Example app:
+
+```bash
+cp example-next/.env.example example-next/.env.local
+pnpm --filter example-next dev
+```
+
+Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/creem` through your tunnel of choice.
+
+## Troubleshooting
+
+- Invalid webhook signature: make sure the handler reads the raw request body, not parsed JSON.
+- Missing visitor tracking: the checkout still works by default; enable `strictTracking` if you want the request to fail instead.
+- Wrong amount format: Creem amounts are interpreted as minor units and converted into decimal major units before sending to DataFast.
+- Duplicate forwards: pass a real `idempotencyStore` in production if you need dedupe across processes.
+
+## API Reference
+
+```ts
+import { createCreemDataFast } from "creem-datafast";
+import { createNextWebhookHandler } from "creem-datafast/next";
+import { createExpressWebhookHandler } from "creem-datafast/express";
+import { appendDataFastTracking, getDataFastTracking } from "creem-datafast/client";
+```
+
+Root API:
+
+- `createCreemDataFast(options)`
+- `client.createCheckout(params, context?)`
+- `client.handleWebhook({ rawBody, headers })`
+- `client.verifyWebhookSignature(rawBody, headers)`
+
+Subpaths:
+
+- `creem-datafast/next`
+- `creem-datafast/express`
+- `creem-datafast/client`
+
+## Adoption Note
+
+This package is Ready to be adopted under an official scope later. Today it stays framework-neutral and explicit so merchants can integrate it quickly, while leaving room for future promotion under a Creem-owned namespace.

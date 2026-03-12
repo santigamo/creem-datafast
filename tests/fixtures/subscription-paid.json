@@ -1,0 +1,21 @@
+{
+  "id": "evt_subscription_paid_123",
+  "eventType": "subscription.paid",
+  "object": {
+    "metadata": {
+      "datafast_visitor_id": "visitor_sub_123",
+      "datafast_session_id": "session_sub_123"
+    },
+    "customer": {
+      "id": "cus_sub_123",
+      "email": "subscription@example.com",
+      "name": "Subscription Customer"
+    },
+    "product": {
+      "price": 1000,
+      "currency": "EUR"
+    },
+    "last_transaction_id": "txn_sub_123",
+    "last_transaction_date": "2026-03-12T10:00:00.000Z"
+  }
+}

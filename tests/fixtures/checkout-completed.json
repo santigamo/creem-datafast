@@ -1,0 +1,23 @@
+{
+  "id": "evt_checkout_completed_123",
+  "eventType": "checkout.completed",
+  "object": {
+    "metadata": {
+      "datafast_visitor_id": "visitor_from_metadata",
+      "datafast_session_id": "session_from_metadata"
+    },
+    "order": {
+      "id": "order_123",
+      "amount": 2999,
+      "currency": "USD",
+      "metadata": {
+        "datafast_visitor_id": "visitor_from_order_metadata"
+      }
+    },
+    "customer": {
+      "id": "cus_123",
+      "email": "checkout@example.com",
+      "name": "Checkout Customer"
+    }
+  }
+}

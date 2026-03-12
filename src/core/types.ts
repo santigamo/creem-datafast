@@ -1,0 +1,276 @@
+export type MetadataValue = string | number | boolean | null;
+export type CheckoutMetadata = Record<string, MetadataValue>;
+
+export interface DataFastTracking {
+  visitorId?: string;
+  sessionId?: string;
+}
+
+export interface LoggerLike {
+  debug(message: string, meta?: unknown): void;
+  info(message: string, meta?: unknown): void;
+  warn(message: string, meta?: unknown): void;
+  error(message: string, meta?: unknown): void;
+}
+
+export interface IdempotencyStore {
+  has(key: string): Promise<boolean>;
+  set(key: string, ttlSeconds?: number): Promise<void>;
+}
+
+export type HeadersLike =
+  | Headers
+  | Record<string, string | string[] | undefined>;
+
+export interface RequestLike {
+  headers: HeadersLike;
+}
+
+export interface CheckoutCustomerInput {
+  id?: string;
+  email?: string;
+}
+
+export interface CheckoutCustomFieldInput {
+  type: "text" | "checkbox";
+  key: string;
+  label: string;
+  optional?: boolean;
+  text?: {
+    maxLength?: number;
+    minLength?: number;
+  };
+  checkbox?: {
+    label: string;
+  };
+}
+
+export interface CreateCheckoutParams {
+  productId: string;
+  successUrl: string;
+  requestId?: string;
+  units?: number;
+  discountCode?: string;
+  customer?: CheckoutCustomerInput;
+  customFields?: CheckoutCustomFieldInput[];
+  metadata?: CheckoutMetadata;
+  tracking?: DataFastTracking;
+}
+
+export interface CreateCheckoutContext {
+  request?: RequestLike;
+  cookieHeader?: string;
+  strictTracking?: boolean;
+}
+
+export interface CreateCheckoutResult {
+  checkoutId: string;
+  checkoutUrl: string;
+  injectedTracking: DataFastTracking;
+  finalMetadata: CheckoutMetadata;
+  raw: unknown;
+}
+
+export interface HandleWebhookParams {
+  rawBody: string;
+  headers: HeadersLike;
+}
+
+export type SupportedWebhookEvent =
+  | "checkout.completed"
+  | "subscription.paid";
+
+export interface DataFastPaymentPayload {
+  amount: number;
+  currency: string;
+  transaction_id: string;
+  datafast_visitor_id?: string;
+  email?: string;
+  name?: string;
+  customer_id?: string;
+  renewal?: boolean;
+  timestamp?: string;
+}
+
+export type HandleWebhookResult =
+  | {
+      ok: true;
+      ignored: false;
+      eventId: string;
+      eventType: SupportedWebhookEvent;
+      deduplicated: boolean;
+      payload: DataFastPaymentPayload;
+      datafastResponse: unknown;
+    }
+  | {
+      ok: true;
+      ignored: true;
+      eventId?: string;
+      eventType?: string;
+      reason:
+        | "unsupported_event"
+        | "duplicate_event";
+    };
+
+export interface CreemDataFastOptions {
+  creemApiKey?: string;
+  creemClient?: unknown;
+  creemWebhookSecret: string;
+  datafastApiKey: string;
+  testMode?: boolean;
+  captureSessionId?: boolean;
+  hydrateTransactionOnSubscriptionPaid?: boolean;
+  strictTracking?: boolean;
+  idempotencyTtlSeconds?: number;
+  logger?: LoggerLike;
+  idempotencyStore?: IdempotencyStore;
+  fetch?: typeof globalThis.fetch;
+}
+
+export interface CreemDataFastClient {
+  createCheckout(
+    params: CreateCheckoutParams,
+    context?: CreateCheckoutContext
+  ): Promise<CreateCheckoutResult>;
+  handleWebhook(
+    params: HandleWebhookParams
+  ): Promise<HandleWebhookResult>;
+  verifyWebhookSignature(
+    rawBody: string,
+    headers: HeadersLike
+  ): boolean;
+}
+
+export interface NextWebhookHandlerOptions {
+  onError?: (error: unknown) => void | Promise<void>;
+}
+
+export interface ExpressLikeRequest {
+  headers: Record<string, string | string[] | undefined>;
+  body: Buffer | string;
+}
+
+export interface ExpressLikeResponse {
+  status(code: number): ExpressLikeResponse;
+  send(body?: unknown): void;
+}
+
+export interface ExpressWebhookHandlerOptions {
+  onError?: (error: unknown) => void | Promise<void>;
+}
+
+export interface BrowserTrackingResult {
+  visitorId?: string;
+  sessionId?: string;
+}
+
+export interface InternalCreateCheckoutRequest {
+  productId: string;
+  successUrl: string;
+  requestId?: string;
+  units?: number;
+  discountCode?: string;
+  customer?: CheckoutCustomerInput;
+  customFields?: CheckoutCustomFieldInput[];
+  metadata?: CheckoutMetadata;
+}
+
+export interface InternalCheckoutResponse {
+  id?: string;
+  checkoutUrl?: string;
+  checkout_url?: string;
+  [key: string]: unknown;
+}
+
+export interface NormalizedTransaction {
+  amount: number;
+  currency: string;
+  id: string;
+  timestamp?: string;
+}
+
+export interface InternalCreemClient {
+  createCheckout(
+    request: InternalCreateCheckoutRequest
+  ): Promise<InternalCheckoutResponse>;
+  getTransactionById(
+    transactionId: string
+  ): Promise<unknown>;
+}
+
+export interface InternalDataFastClient {
+  sendPayment(
+    payload: DataFastPaymentPayload
+  ): Promise<unknown>;
+}
+
+export interface CheckoutCompletedCustomer {
+  id?: string;
+  email?: string;
+  name?: string;
+}
+
+export interface CheckoutCompletedOrder {
+  id: string;
+  amount: number;
+  currency: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CheckoutCompletedObject {
+  order?: CheckoutCompletedOrder;
+  customer?: CheckoutCompletedCustomer | string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CheckoutCompletedEvent {
+  id?: string;
+  eventType?: string;
+  event_type?: string;
+  object?: CheckoutCompletedObject;
+}
+
+export interface SubscriptionPaidCustomer {
+  id?: string;
+  email?: string;
+  name?: string;
+}
+
+export interface SubscriptionPaidProduct {
+  price?: number;
+  currency?: string;
+}
+
+export interface SubscriptionPaidObject {
+  customer?: SubscriptionPaidCustomer | string;
+  metadata?: Record<string, unknown>;
+  product?: SubscriptionPaidProduct;
+  last_transaction_id?: string;
+  lastTransactionId?: string;
+  last_transaction_date?: string;
+  lastTransactionDate?: string;
+}
+
+export interface SubscriptionPaidEvent {
+  id?: string;
+  eventType?: string;
+  event_type?: string;
+  object?: SubscriptionPaidObject;
+}
+
+export interface WebhookHandlerDependencies {
+  creemWebhookSecret: string;
+  datafast: InternalDataFastClient;
+  creem: InternalCreemClient;
+  idempotencyStore?: IdempotencyStore;
+  idempotencyTtlSeconds: number;
+  hydrateTransactionOnSubscriptionPaid: boolean;
+  logger: LoggerLike;
+}
+
+export interface CheckoutDependencies {
+  creem: InternalCreemClient;
+  captureSessionId: boolean;
+  strictTracking: boolean;
+  logger: LoggerLike;
+}
