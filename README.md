@@ -154,6 +154,8 @@ pnpm test
 pnpm typecheck
 ```
 
+These same checks run in GitHub Actions on every push and pull request.
+
 Example app:
 
 ```bash

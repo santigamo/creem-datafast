@@ -64,3 +64,10 @@
 - **Learnings for future iterations:**
   - Agent-facing docs work best when they are opinionated, execution-oriented, and mirror the supported integration paths exactly.
 ---
+## 2026-03-12 19:45 - github-actions-ci
+- Added a minimal GitHub Actions workflow that runs `pnpm build`, `pnpm test`, and `pnpm typecheck` on push and pull request.
+- Mentioned the CI checks in the README local testing section so reviewers can see that the package is continuously validated.
+- Files changed: `.github/workflows/ci.yml`, `README.md`
+- **Learnings for future iterations:**
+  - Keep the first CI pass focused on root package checks when example apps need extra env wiring; that gives strong signal without dragging secrets into baseline validation.
+---
