@@ -5,6 +5,7 @@
 - Creem webhook `object.customer` fields are polymorphic; preserve `customer_id` whether the payload sends a hydrated object or a raw string id.
 - The Next example maps `creem-datafast` subpaths to `../src/*` via TS paths so it can typecheck and build without depending on generated `dist/`.
 - Keep `creem-datafast` root exports limited to the framework-agnostic core; adapter/browser APIs and their types should stay on subpath entrypoints.
+- Next.js-specific webhook conveniences belong in `creem-datafast/next`; if they accept `Request`, document clearly that they consume the body stream once.
 
 ## 2026-03-12 18:45 - setup
 - Initialized the `creem-datafast` package from scratch with strict TypeScript, `tsup`, `vitest`, and a pnpm workspace for the example app.
@@ -76,4 +77,12 @@
 - Files changed: `README.md`
 - **Learnings for future iterations:**
   - README badges should reflect real, externally verifiable signals; do not add npm version badges before publication exists.
+---
+## 2026-03-12 20:24 - next-webhook-helper
+- Added `handleWebhookRequest()` to the Next.js subpath so custom route handlers can pass a `Request` directly without duplicating raw-body extraction.
+- Reused the new helper inside `createNextWebhookHandler()`, added unit coverage for request forwarding and error propagation, and documented the advanced Next.js usage in the README.
+- Files changed: `src/adapters/next.ts`, `src/next.ts`, `tests/unit/next-adapter.test.ts`, `README.md`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Keep `Request`-aware helpers out of the root client surface; `creem-datafast/next` is the right boundary for Web API conveniences.
+  - If a helper reads `request.text()`, say explicitly that the body stream is consumed so callers do not try to reuse it later.
 ---

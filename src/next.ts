@@ -1,5 +1,6 @@
 export {
-  createNextWebhookHandler
+  createNextWebhookHandler,
+  handleWebhookRequest
 } from "./adapters/next.js";
 
 export type {

@@ -1,8 +1,20 @@
 import { InvalidCreemSignatureError } from "../core/errors.js";
 import type {
   CreemDataFastClient,
+  HandleWebhookResult,
   NextWebhookHandlerOptions
 } from "../core/types.js";
+
+export async function handleWebhookRequest(
+  client: CreemDataFastClient,
+  request: Request
+): Promise<HandleWebhookResult> {
+  const rawBody = await request.text();
+  return client.handleWebhook({
+    rawBody,
+    headers: request.headers
+  });
+}
 
 export function createNextWebhookHandler(
   client: CreemDataFastClient,
@@ -10,11 +22,7 @@ export function createNextWebhookHandler(
 ): (request: Request) => Promise<Response> {
   return async (request: Request) => {
     try {
-      const rawBody = await request.text();
-      await client.handleWebhook({
-        rawBody,
-        headers: request.headers
-      });
+      await handleWebhookRequest(client, request);
 
       return new Response("OK", { status: 200 });
     } catch (error) {

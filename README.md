@@ -71,6 +71,25 @@ export const runtime = "nodejs";
 export const POST = createNextWebhookHandler(creemDataFast);
 ```
 
+If you need custom response logic in Next.js, use the lower-level helper instead. It reads the raw body for you and forwards the webhook through the same core path. Note that it consumes the request body stream.
+
+```ts
+import { handleWebhookRequest } from "creem-datafast/next";
+import { creemDataFast } from "@/lib/creem-datafast";
+
+export const runtime = "nodejs";
+
+export async function POST(request: Request) {
+  const result = await handleWebhookRequest(creemDataFast, request);
+
+  if (result.ignored) {
+    return new Response("Ignored", { status: 200 });
+  }
+
+  return new Response("OK", { status: 200 });
+}
+```
+
 ## Quickstart Express
 
 Use the Framework-agnostic core in your app layer and keep the webhook route on raw body middleware.
@@ -197,6 +216,11 @@ Subpaths:
 - `creem-datafast/next`
 - `creem-datafast/express`
 - `creem-datafast/client`
+
+Next.js helpers:
+
+- `createNextWebhookHandler(client, options?)`
+- `handleWebhookRequest(client, request)`
 
 ## Adoption Note
 
