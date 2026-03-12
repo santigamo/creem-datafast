@@ -1,3 +1,4 @@
+import Script from "next/script";
 import type { Metadata } from "next";
 import { Cormorant_Garamond, IBM_Plex_Mono } from "next/font/google";
 
@@ -30,6 +31,15 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${displayFont.variable} ${monoFont.variable}`}>
         {children}
+        {process.env.DATAFAST_WEBSITE_ID && (
+          <Script
+            defer
+            src="https://datafa.st/js/script.js"
+            data-website-id={process.env.DATAFAST_WEBSITE_ID}
+            data-domain={process.env.DATAFAST_DOMAIN}
+            data-allow-localhost="true"
+          />
+        )}
       </body>
     </html>
   );

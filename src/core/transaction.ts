@@ -14,7 +14,8 @@ function toIsoTimestamp(input?: number): string | undefined {
     return undefined;
   }
 
-  return new Date(input * 1000).toISOString();
+  const ms = input > 1e12 ? input : input * 1000;
+  return new Date(ms).toISOString();
 }
 
 export async function hydrateTransaction(
