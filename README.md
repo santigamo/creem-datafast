@@ -132,9 +132,14 @@ const checkoutEndpoint = appendDataFastTracking("/api/checkout", tracking);
 
 ## Environment Variables
 
+Package / integration:
+
 - `CREEM_API_KEY`: Creem Core SDK API key.
 - `CREEM_WEBHOOK_SECRET`: secret used to validate `creem-signature`.
 - `DATAFAST_API_KEY`: bearer token for DataFast payments.
+
+Example app only:
+
 - `CREEM_PRODUCT_ID`: product used by your checkout endpoint.
 - `APP_BASE_URL`: base URL for success redirects and local webhook setup.
 - `CREEM_TEST_MODE`: example-app env var that maps to the `testMode` constructor option. Set it to `true` to target `https://test-api.creem.io`.

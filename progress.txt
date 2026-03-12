@@ -51,3 +51,9 @@
 - **Learnings for future iterations:**
   - README copy lands better when it describes merchant outcomes first and leaves implementation details for later sections.
 ---
+## 2026-03-12 19:30 - readme-env-separation
+- Split the README environment variable list into package-level settings versus example-app-only settings so the example-specific vars do not read like package requirements.
+- Files changed: `README.md`
+- **Learnings for future iterations:**
+  - Example-only configuration should be labeled explicitly in package docs when the example introduces extra env vars beyond the library surface.
+---
