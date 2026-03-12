@@ -1,18 +1,18 @@
 # creem-datafast
 
-Wraps the official `creem` Core SDK and forwards the payment events you care about to DataFast. It gives you a Framework-agnostic core, Automatically captures DataFast tracking cookies during checkout creation, and ships with Next.js and Express adapters included.
+Wraps the official `creem` Core SDK and forwards the payment events you care about to DataFast. It gives you a Framework-agnostic core, automatically captures DataFast tracking cookies during checkout creation, and ships with Next.js and Express adapters included.
 
 ## What It Does
 
 `creem-datafast` focuses on three jobs:
 
-- Create Creem checkouts without losing merchant metadata.
+- Create Creem checkouts with automatic DataFast visitor attribution.
 - Read `datafast_visitor_id` and `datafast_session_id` from the request and inject them into Creem checkout metadata.
 - Verify Creem webhooks with the raw body, map supported payments, and forward them to DataFast.
 
 ## Why It Exists
 
-Creem exposes checkout metadata, webhook delivery, and the official Core SDK. DataFast expects a payment payload with transaction details and visitor context. This package keeps that glue small and explicit instead of forcing each merchant to rebuild cookie capture, signature verification, and event mapping from scratch.
+Connecting Creem payments to DataFast requires capturing visitor cookies at checkout, verifying webhooks, and mapping event data into DataFast's payment API. This package handles all three so you do not rebuild that glue in every project.
 
 ## Installation
 
@@ -20,7 +20,7 @@ Creem exposes checkout metadata, webhook delivery, and the official Core SDK. Da
 pnpm add creem-datafast
 ```
 
-Internally the package Wraps the official `creem` Core SDK, so you do not need to install `creem` separately in a normal consumer app.
+Internally the package wraps the official `creem` Core SDK, so you do not need to install `creem` separately in a normal consumer app.
 
 ## Quickstart Next.js
 
@@ -124,6 +124,12 @@ const checkoutEndpoint = appendDataFastTracking("/api/checkout", tracking);
 4. Creem sends `checkout.completed` and `subscription.paid` webhooks back to your server.
 5. `handleWebhook()` verifies `creem-signature`, deduplicates by event id, maps the payload, and forwards the payment to DataFast.
 
+## Supported Events
+
+- `checkout.completed`
+- `subscription.paid`
+- Any other Creem event is ignored and returns `200 OK` so unsupported deliveries do not trigger unnecessary retries.
+
 ## Environment Variables
 
 - `CREEM_API_KEY`: Creem Core SDK API key.
@@ -131,7 +137,7 @@ const checkoutEndpoint = appendDataFastTracking("/api/checkout", tracking);
 - `DATAFAST_API_KEY`: bearer token for DataFast payments.
 - `CREEM_PRODUCT_ID`: product used by your checkout endpoint.
 - `APP_BASE_URL`: base URL for success redirects and local webhook setup.
-- `CREEM_TEST_MODE`: set `true` to use `https://test-api.creem.io`.
+- `CREEM_TEST_MODE`: example-app env var that maps to the `testMode` constructor option. Set it to `true` to target `https://test-api.creem.io`.
 
 ## Testing Local
 
@@ -183,4 +189,4 @@ Subpaths:
 
 ## Adoption Note
 
-This package is Ready to be adopted under an official scope later. Today it stays framework-neutral and explicit so merchants can integrate it quickly, while leaving room for future promotion under a Creem-owned namespace.
+This package is designed for easy adoption under `@creem_io/datafast` or any official Creem scope. The architecture keeps core logic separate from framework adapters to simplify future maintenance and namespace migration.

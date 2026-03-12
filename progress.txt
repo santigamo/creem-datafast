@@ -45,3 +45,9 @@
 - **Learnings for future iterations:**
   - The canonical Next.js example is clearer than the lazy proxy version, but it requires webhook env vars to exist at build-time because the module is evaluated during `next build`.
 ---
+## 2026-03-12 19:27 - readme-polish
+- Tightened the README positioning so the merchant value proposition is clearer, documented supported webhook events explicitly, and clarified that `CREEM_TEST_MODE` is the example app's env wrapper around the `testMode` option.
+- Files changed: `README.md`
+- **Learnings for future iterations:**
+  - README copy lands better when it describes merchant outcomes first and leaves implementation details for later sections.
+---
