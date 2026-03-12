@@ -26,8 +26,20 @@ function readMetadataValue(
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-function toCustomer(value: CheckoutCompletedCustomer | SubscriptionPaidCustomer | string | undefined) {
+function toCustomer(
+  value: CheckoutCompletedCustomer | SubscriptionPaidCustomer | string | undefined
+): CheckoutCompletedCustomer | SubscriptionPaidCustomer | undefined {
   return typeof value === "object" && value !== null ? value : undefined;
+}
+
+function resolveCustomerId(
+  value: CheckoutCompletedCustomer | SubscriptionPaidCustomer | string | undefined
+): string | undefined {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+
+  return toCustomer(value)?.id;
 }
 
 function withOptionalFields(
@@ -62,7 +74,8 @@ export function mapCheckoutCompletedToPayment(
     throw new CreemDataFastError("checkout.completed payload is missing order.");
   }
 
-  const customer = toCustomer(event.object?.customer);
+  const customerValue = event.object?.customer;
+  const customer = toCustomer(customerValue);
   const metadata = getCheckoutMetadata(event);
 
   return withOptionalFields(
@@ -73,7 +86,7 @@ export function mapCheckoutCompletedToPayment(
       renewal: false
     },
     {
-      customer_id: customer?.id,
+      customer_id: resolveCustomerId(customerValue),
       datafast_visitor_id: readMetadataValue(metadata, "datafast_visitor_id"),
       email: customer?.email,
       name: customer?.name
@@ -85,7 +98,8 @@ export function mapSubscriptionPaidToPayment(
   event: SubscriptionPaidEvent,
   transaction?: NormalizedTransaction
 ): DataFastPaymentPayload {
-  const customer = toCustomer(event.object?.customer);
+  const customerValue = event.object?.customer;
+  const customer = toCustomer(customerValue);
   const metadata = getSubscriptionMetadata(event);
   const product = event.object?.product;
   const transactionId = transaction?.id
@@ -112,7 +126,7 @@ export function mapSubscriptionPaidToPayment(
       renewal: true
     },
     {
-      customer_id: customer?.id,
+      customer_id: resolveCustomerId(customerValue),
       datafast_visitor_id: readMetadataValue(metadata, "datafast_visitor_id"),
       email: customer?.email,
       name: customer?.name,

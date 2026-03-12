@@ -36,4 +36,22 @@ describe("mapSubscriptionPaidToPayment", () => {
       transaction_id: "txn_sub_123"
     });
   });
+
+  it("uses a string customer as customer_id", () => {
+    expect(mapSubscriptionPaidToPayment({
+      ...subscriptionPaidFixture,
+      object: {
+        ...subscriptionPaidFixture.object,
+        customer: "cus_string_456"
+      }
+    })).toEqual({
+      amount: 10,
+      currency: "EUR",
+      customer_id: "cus_string_456",
+      datafast_visitor_id: "visitor_sub_123",
+      renewal: true,
+      timestamp: "2026-03-12T10:00:00.000Z",
+      transaction_id: "txn_sub_123"
+    });
+  });
 });

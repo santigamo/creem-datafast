@@ -2,6 +2,7 @@
 - Verify Creem webhooks against the raw body and keep adapters transport-only; Express integrations must use `express.raw({ type: "application/json" })`.
 - Keep tracking precedence explicit: `params.tracking` overrides metadata tracking keys, metadata tracking keys override cookies, and only `datafast_visitor_id` / `datafast_session_id` are ever injected.
 - `subscription.paid` should hydrate `last_transaction_id` when available and only fall back to product pricing on hydration failure.
+- Creem webhook `object.customer` fields are polymorphic; preserve `customer_id` whether the payload sends a hydrated object or a raw string id.
 - The Next example maps `creem-datafast` subpaths to `../src/*` via TS paths so it can typecheck and build without depending on generated `dist/`.
 
 ## 2026-03-12 18:45 - setup
@@ -20,4 +21,12 @@
   - The public factory stays small; most behavior should remain in pure/internal modules under `src/core/` so adapters stay thin.
   - Webhook idempotency defaults to a no-op store, which keeps the package storage-free but means production callers should inject a durable store when they need cross-process dedupe.
   - The example app can log forwarded DataFast payloads by wrapping `fetch` instead of complicating the package surface with dev-only hooks.
+---
+## 2026-03-12 18:55 - customer-id-regression
+- Fixed webhook mapping so `customer_id` is preserved when Creem sends `object.customer` as a string id instead of a hydrated object.
+- Added regression tests for `checkout.completed` and `subscription.paid` customer string payloads.
+- Files changed: `src/core/mapper.ts`, `tests/unit/mapper.checkout-completed.test.ts`, `tests/unit/mapper.subscription-paid.test.ts`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Creem webhook fixtures should cover both enriched and minimal payload shapes for shared fields like `customer`.
+  - Keep mapper helpers shape-aware so optional enriched fields can be omitted without dropping required identifiers.
 ---
