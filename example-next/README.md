@@ -16,5 +16,6 @@ Open [http://localhost:3000](http://localhost:3000), press the checkout button, 
 
 - Server-side checkout creation with `createCreemDataFast()`
 - Request cookie capture through `createCheckout(..., { request })`
-- Webhook handling with `createNextWebhookHandler()`
+- Custom webhook handling with `handleWebhookRequest()`
+- Branching on `result.ignored` before returning the final response
 - Development-time logging of the payload forwarded to DataFast

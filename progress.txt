@@ -86,3 +86,10 @@
   - Keep `Request`-aware helpers out of the root client surface; `creem-datafast/next` is the right boundary for Web API conveniences.
   - If a helper reads `request.text()`, say explicitly that the body stream is consumed so callers do not try to reuse it later.
 ---
+## 2026-03-12 20:26 - next-example-custom-webhook
+- Switched the Next.js example webhook route to `handleWebhookRequest()` so the repo demonstrates custom response logic in a real app instead of only in docs.
+- Added simple logging and branching for ignored versus processed webhooks, and updated the example README to call out the custom handling flow.
+- Files changed: `example-next/app/api/webhook/creem/route.ts`, `example-next/README.md`
+- **Learnings for future iterations:**
+  - Example apps should demonstrate the most useful advanced path when a new helper is introduced, otherwise README snippets feel disconnected from the runnable code.
+---
