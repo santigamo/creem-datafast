@@ -101,3 +101,11 @@
 - **Learnings for future iterations:**
   - Timestamp-normalization fixes are easy to under-test if fixtures still use the old unit; update fixtures alongside the implementation so regressions are caught.
 ---
+## 2026-03-12 21:17 - webhook-dx-intellisense
+- Added JSDoc for the webhook-facing public API and exported `ProcessedWebhookResult` / `IgnoredWebhookResult` aliases so TypeScript users get clearer editor guidance when branching on webhook outcomes.
+- Rebuilt declarations and re-ran build, typecheck, and tests to confirm the public type surface stayed healthy.
+- Files changed: `src/core/types.ts`, `src/index.ts`, `src/adapters/next.ts`
+- **Learnings for future iterations:**
+  - Small JSDoc additions on exported union types and helpers pay off immediately in editor hover without forcing more complex runtime APIs.
+  - Named aliases for discriminated union branches make consumer-side narrowing clearer than an anonymous inline union.
+---
