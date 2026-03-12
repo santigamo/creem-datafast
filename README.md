@@ -71,6 +71,8 @@ export const runtime = "nodejs";
 export const POST = createNextWebhookHandler(creemDataFast);
 ```
 
+Use `createNextWebhookHandler()` for the default Next.js path. If you need custom response logic, switch to `handleWebhookRequest()` instead.
+
 If you need custom response logic in Next.js, use the lower-level helper instead. It reads the raw body for you and forwards the webhook through the same core path. Note that it consumes the request body stream.
 
 ```ts
