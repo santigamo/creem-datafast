@@ -6,6 +6,7 @@
 - The Next example maps `creem-datafast` subpaths to `../src/*` via TS paths so it can typecheck and build without depending on generated `dist/`.
 - Keep `creem-datafast` root exports limited to the framework-agnostic core; adapter/browser APIs and their types should stay on subpath entrypoints.
 - Next.js-specific webhook conveniences belong in `creem-datafast/next`; if they accept `Request`, document clearly that they consume the body stream once.
+- Creem transaction hydration fixtures should use millisecond `createdAt` values to match the SDK and catch timestamp unit regressions.
 
 ## 2026-03-12 18:45 - setup
 - Initialized the `creem-datafast` package from scratch with strict TypeScript, `tsup`, `vitest`, and a pnpm workspace for the example app.
@@ -92,4 +93,11 @@
 - Files changed: `example-next/app/api/webhook/creem/route.ts`, `example-next/README.md`
 - **Learnings for future iterations:**
   - Example apps should demonstrate the most useful advanced path when a new helper is introduced, otherwise README snippets feel disconnected from the runnable code.
+---
+## 2026-03-12 20:46 - transaction-timestamp-fixture
+- Updated the transaction hydration fixture to use a millisecond `createdAt` value so the test suite matches the Creem SDK transaction model.
+- Re-ran unit tests and typecheck to confirm the hydrated ISO timestamp behavior stays unchanged.
+- Files changed: `tests/fixtures/transaction.json`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Timestamp-normalization fixes are easy to under-test if fixtures still use the old unit; update fixtures alongside the implementation so regressions are caught.
 ---
