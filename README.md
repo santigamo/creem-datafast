@@ -8,11 +8,12 @@ Wraps the official `creem` Core SDK and forwards the payment events you care abo
 
 ## What It Does
 
-`creem-datafast` focuses on three jobs:
+`creem-datafast` focuses on four jobs:
 
 - Create Creem checkouts with automatic DataFast visitor attribution.
 - Read `datafast_visitor_id` and `datafast_session_id` from the request and inject them into Creem checkout metadata.
 - Verify Creem webhooks with the raw body, map supported payments, and forward them to DataFast.
+- Forward Creem refunds to DataFast as refunded payment events.
 
 ## Why It Exists
 
@@ -23,13 +24,14 @@ Connecting Creem payments to DataFast requires capturing visitor cookies at chec
 1. Your backend calls `createCheckout()` with the incoming `Request` or cookie header.
 2. The package injects `datafast_visitor_id` and `datafast_session_id` into Creem metadata without dropping the rest of your metadata.
 3. Creem redirects the customer to `checkoutUrl`.
-4. Creem sends `checkout.completed` and `subscription.paid` webhooks back to your server.
-5. `handleWebhook()` verifies `creem-signature`, deduplicates by event id, maps the payload, and forwards the payment to DataFast.
+4. Creem sends `checkout.completed`, `subscription.paid`, and `refund.created` webhooks back to your server.
+5. `handleWebhook()` verifies `creem-signature`, deduplicates by event id, maps the payload, and forwards the payment or refund to DataFast.
 
 ## Supported Events
 
 - `checkout.completed`
 - `subscription.paid`
+- `refund.created`
 - Any other Creem event is ignored and returns `200 OK` so unsupported deliveries do not trigger unnecessary retries.
 
 ## Installation
@@ -46,7 +48,8 @@ Internally the package wraps the official `creem` Core SDK, so you do not need t
 - ESM-only package. Import with `import`, not `require()`.
 - Next.js Route Handlers on the Node runtime
 - Express webhook routes using `express.raw({ type: "application/json" })`
-- Supported webhook events: `checkout.completed`, `subscription.paid`
+- Supported webhook events: `checkout.completed`, `subscription.paid`, `refund.created`
+- Refunds are forwarded as DataFast payments with `refunded: true`
 
 ## Quickstart Next.js
 
@@ -217,6 +220,7 @@ Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/
 - Missing `creem-signature` header: `verifyWebhookSignature()` and `handleWebhook()` throw `InvalidCreemSignatureError` because the request is malformed.
 - Missing visitor tracking: the checkout still works by default; enable `strictTracking` if you want the request to fail instead.
 - Wrong amount format: Creem amounts are interpreted as minor units and converted into decimal major units before sending to DataFast.
+- Refund semantics: `refund.created` forwards the refunded amount as a new DataFast payment with `refunded: true` and uses the Creem refund id as `transaction_id`.
 - Duplicate forwards: pass a real `idempotencyStore` in production if you need dedupe across processes.
 
 ## API Reference

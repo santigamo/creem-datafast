@@ -1,0 +1,26 @@
+{
+  "id": "evt_refund_created_123",
+  "eventType": "refund.created",
+  "created_at": 1773313200000,
+  "object": {
+    "id": "refund_123",
+    "refund_amount": 500,
+    "refund_currency": "EUR",
+    "metadata": {
+      "datafast_visitor_id": "visitor_refund_123"
+    },
+    "transaction": {
+      "id": "txn_refund_target_123",
+      "type": "invoice",
+      "subscription": "sub_123",
+      "customer": {
+        "id": "cus_refund_123",
+        "email": "refund@example.com",
+        "name": "Refund Customer"
+      },
+      "metadata": {
+        "datafast_visitor_id": "visitor_from_transaction_metadata"
+      }
+    }
+  }
+}

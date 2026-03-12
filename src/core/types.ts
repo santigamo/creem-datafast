@@ -84,7 +84,8 @@ export interface HandleWebhookParams {
 
 export type SupportedWebhookEvent =
   | "checkout.completed"
-  | "subscription.paid";
+  | "subscription.paid"
+  | "refund.created";
 
 export interface DataFastPaymentPayload {
   amount: number;
@@ -95,6 +96,7 @@ export interface DataFastPaymentPayload {
   name?: string;
   customer_id?: string;
   renewal?: boolean;
+  refunded?: boolean;
   timestamp?: string;
 }
 
@@ -292,6 +294,48 @@ export interface SubscriptionPaidEvent {
   eventType?: string;
   event_type?: string;
   object?: SubscriptionPaidObject;
+}
+
+export interface RefundCreatedCustomer {
+  id?: string;
+  email?: string;
+  name?: string;
+}
+
+export interface RefundCreatedTransaction {
+  id?: string;
+  amount?: number;
+  amount_paid?: number;
+  amountPaid?: number;
+  currency?: string;
+  type?: string;
+  subscription?: string | null;
+  customer?: RefundCreatedCustomer | string;
+  metadata?: Record<string, unknown>;
+  created_at?: number | string;
+  createdAt?: number | string;
+}
+
+export interface RefundCreatedObject {
+  id?: string;
+  refund_amount?: number;
+  refundAmount?: number;
+  refund_currency?: string;
+  refundCurrency?: string;
+  customer?: RefundCreatedCustomer | string;
+  metadata?: Record<string, unknown>;
+  created_at?: number | string;
+  createdAt?: number | string;
+  transaction?: RefundCreatedTransaction;
+}
+
+export interface RefundCreatedEvent {
+  id?: string;
+  eventType?: string;
+  event_type?: string;
+  created_at?: number | string;
+  createdAt?: number | string;
+  object?: RefundCreatedObject;
 }
 
 export interface WebhookHandlerDependencies {

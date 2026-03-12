@@ -1,12 +1,17 @@
 import { InvalidCreemSignatureError, UnsupportedWebhookEventError } from "./errors.js";
 import { markEventProcessed, resolveIdempotencyStore, shouldProcessEvent } from "./idempotency.js";
-import { mapCheckoutCompletedToPayment, mapSubscriptionPaidToPayment } from "./mapper.js";
+import {
+  mapCheckoutCompletedToPayment,
+  mapRefundCreatedToPayment,
+  mapSubscriptionPaidToPayment
+} from "./mapper.js";
 import { extractHeader, verifyCreemSignature } from "./signature.js";
 import { hydrateTransaction } from "./transaction.js";
 import type {
   CheckoutCompletedEvent,
   HandleWebhookParams,
   HandleWebhookResult,
+  RefundCreatedEvent,
   SubscriptionPaidEvent,
   SupportedWebhookEvent,
   WebhookHandlerDependencies
@@ -22,7 +27,9 @@ function getEventId(payload: Record<string, unknown>): string | undefined {
 }
 
 function isSupportedWebhookEvent(eventType: string): eventType is SupportedWebhookEvent {
-  return eventType === "checkout.completed" || eventType === "subscription.paid";
+  return eventType === "checkout.completed"
+    || eventType === "subscription.paid"
+    || eventType === "refund.created";
 }
 
 function parseWebhookPayload(rawBody: string): Record<string, unknown> {
@@ -78,7 +85,9 @@ export async function handleWebhook(
 
   const normalizedPayload = eventType === "checkout.completed"
     ? mapCheckoutCompletedToPayment(payload as CheckoutCompletedEvent)
-    : await (async () => {
+    : eventType === "refund.created"
+      ? mapRefundCreatedToPayment(payload as RefundCreatedEvent)
+      : await (async () => {
         const subscriptionPayload = payload as SubscriptionPaidEvent;
         const lastTransactionId = subscriptionPayload.object?.last_transaction_id
           ?? subscriptionPayload.object?.lastTransactionId;

@@ -1,6 +1,7 @@
 ## Codebase Patterns
 - Verify Creem webhooks against the raw body and keep adapters transport-only; Express integrations must use `express.raw({ type: "application/json" })`.
 - Keep tracking precedence explicit: `params.tracking` overrides metadata tracking keys, metadata tracking keys override cookies, and only `datafast_visitor_id` / `datafast_session_id` are ever injected.
+- Map `refund.created` to a fresh DataFast payment with `refunded: true` and use the Creem refund id as `transaction_id` so partial/full refunds keep unique event identities.
 - `subscription.paid` should hydrate `last_transaction_id` when available and only fall back to product pricing on hydration failure.
 - Creem webhook `object.customer` fields are polymorphic; preserve `customer_id` whether the payload sends a hydrated object or a raw string id.
 - The Next example maps `creem-datafast` subpaths to `../src/*` via TS paths so it can typecheck and build without depending on generated `dist/`.
@@ -121,4 +122,11 @@
 - Files changed: `src/core/checkout.ts`, `tests/unit/checkout.test.ts`, `AGENTS.md`
 - **Learnings for future iterations:**
   - Keep error subclasses semantic: tracking enforcement errors should stay separate from invalid upstream response contracts so consumers can branch on them safely.
+---
+## 2026-03-12 22:20 - refund-created-support
+- Added `refund.created` webhook support, mapped refunds into DataFast payments with `refunded: true`, used the refund id as `transaction_id`, and covered the flow with mapper and webhook tests plus fixture updates.
+- Files changed: `src/core/types.ts`, `src/core/mapper.ts`, `src/core/webhook.ts`, `tests/fixtures/refund-created.json`, `tests/unit/mapper.refund-created.test.ts`, `tests/unit/webhook.test.ts`, `README.md`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Refund analytics should be modeled as new payment events, not mutations of the original payment, because DataFast expects unique `transaction_id` values.
+  - Refund tracking should prefer refund metadata but fall back to transaction metadata so merchant attribution survives payload shape differences.
 ---

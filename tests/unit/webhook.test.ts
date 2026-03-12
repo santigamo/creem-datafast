@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 
 import checkoutCompletedFixture from "../fixtures/checkout-completed.json";
+import refundCreatedFixture from "../fixtures/refund-created.json";
 import subscriptionPaidFixture from "../fixtures/subscription-paid.json";
 import transactionFixture from "../fixtures/transaction.json";
 
@@ -200,6 +201,40 @@ describe("handleWebhook", () => {
       renewal: true,
       timestamp: "2026-03-12T10:00:00.000Z",
       transaction_id: "txn_sub_123"
+    });
+  });
+
+  it("processes refund.created as a refunded DataFast payment", async () => {
+    const result = await handleWebhook(createParams(refundCreatedFixture), {
+      creem: {
+        createCheckout: vi.fn(),
+        getTransactionById: vi.fn()
+      },
+      creemWebhookSecret: webhookSecret,
+      datafast: {
+        sendPayment: vi.fn(async (payload) => payload)
+      },
+      hydrateTransactionOnSubscriptionPaid: true,
+      idempotencyStore: new TestMemoryIdempotencyStore(),
+      idempotencyTtlSeconds: 3600,
+      logger: noopLogger
+    });
+
+    if (result.ignored) {
+      throw new Error("Expected refund.created to be processed.");
+    }
+
+    expect(result.payload).toEqual({
+      amount: 5,
+      currency: "EUR",
+      customer_id: "cus_refund_123",
+      datafast_visitor_id: "visitor_refund_123",
+      email: "refund@example.com",
+      name: "Refund Customer",
+      refunded: true,
+      renewal: true,
+      timestamp: "2026-03-12T11:00:00.000Z",
+      transaction_id: "refund_123"
     });
   });
 });
