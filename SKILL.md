@@ -23,7 +23,6 @@ Integrate `creem-datafast` into an existing app so it:
 - Keep changes minimal and aligned with the existing app structure.
 - Only support `checkout.completed` and `subscription.paid`. Ignore other Creem events.
 - Do not overwrite merchant metadata. Only inject `datafast_visitor_id` and `datafast_session_id`.
-- For `subscription.paid`, rely on transaction hydration through `last_transaction_id` instead of trusting product pricing when possible.
 - Next.js webhook handlers must run in the Node runtime.
 - Express webhook routes must use `express.raw({ type: "application/json" })`, never `express.json()`.
 
@@ -170,4 +169,5 @@ The integration is done when:
 - a shared `creem-datafast` client exists;
 - checkout creation passes the request context for cookie capture;
 - the webhook route uses the correct adapter and raw body handling;
+- all required environment variables are documented in `.env.example` or equivalent;
 - the app's existing verification commands pass.

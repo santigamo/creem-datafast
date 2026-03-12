@@ -18,6 +18,20 @@ Wraps the official `creem` Core SDK and forwards the payment events you care abo
 
 Connecting Creem payments to DataFast requires capturing visitor cookies at checkout, verifying webhooks, and mapping event data into DataFast's payment API. This package handles all three so you do not rebuild that glue in every project.
 
+## How The Flow Works
+
+1. Your backend calls `createCheckout()` with the incoming `Request` or cookie header.
+2. The package injects `datafast_visitor_id` and `datafast_session_id` into Creem metadata without dropping the rest of your metadata.
+3. Creem redirects the customer to `checkoutUrl`.
+4. Creem sends `checkout.completed` and `subscription.paid` webhooks back to your server.
+5. `handleWebhook()` verifies `creem-signature`, deduplicates by event id, maps the payload, and forwards the payment to DataFast.
+
+## Supported Events
+
+- `checkout.completed`
+- `subscription.paid`
+- Any other Creem event is ignored and returns `200 OK` so unsupported deliveries do not trigger unnecessary retries.
+
 ## Installation
 
 ```bash
@@ -71,27 +85,6 @@ export const runtime = "nodejs";
 export const POST = createNextWebhookHandler(creemDataFast);
 ```
 
-Use `createNextWebhookHandler()` for the default Next.js path. If you need custom response logic, switch to `handleWebhookRequest()` instead.
-
-If you need custom response logic in Next.js, use the lower-level helper instead. It reads the raw body for you and forwards the webhook through the same core path. Note that it consumes the request body stream.
-
-```ts
-import { handleWebhookRequest } from "creem-datafast/next";
-import { creemDataFast } from "@/lib/creem-datafast";
-
-export const runtime = "nodejs";
-
-export async function POST(request: Request) {
-  const result = await handleWebhookRequest(creemDataFast, request);
-
-  if (result.ignored) {
-    return new Response("Ignored", { status: 200 });
-  }
-
-  return new Response("OK", { status: 200 });
-}
-```
-
 ## Quickstart Express
 
 Use the Framework-agnostic core in your app layer and keep the webhook route on raw body middleware.
@@ -132,7 +125,7 @@ app.post(
 
 ## Client-Side Helper
 
-Use the browser helper when you want to append tracking explicitly to your own backend URL before the checkout request.
+Use the browser helper when your checkout request originates from the browser and cookies are not automatically forwarded to your backend (e.g. cross-origin fetch calls). In same-origin setups the server-side cookie capture handles this automatically.
 
 ```ts
 import { appendDataFastTracking, getDataFastTracking } from "creem-datafast/client";
@@ -141,19 +134,28 @@ const tracking = getDataFastTracking();
 const checkoutEndpoint = appendDataFastTracking("/api/checkout", tracking);
 ```
 
-## How The Flow Works
+## Advanced
 
-1. Your backend calls `createCheckout()` with the incoming `Request` or cookie header.
-2. The package injects `datafast_visitor_id` and `datafast_session_id` into Creem metadata without dropping the rest of your metadata.
-3. Creem redirects the customer to `checkoutUrl`.
-4. Creem sends `checkout.completed` and `subscription.paid` webhooks back to your server.
-5. `handleWebhook()` verifies `creem-signature`, deduplicates by event id, maps the payload, and forwards the payment to DataFast.
+### Custom webhook response logic (Next.js)
 
-## Supported Events
+If you need custom response logic in Next.js, use `handleWebhookRequest()` instead of `createNextWebhookHandler()`. It reads the raw body for you and forwards the webhook through the same core path. Note that it consumes the request body stream.
 
-- `checkout.completed`
-- `subscription.paid`
-- Any other Creem event is ignored and returns `200 OK` so unsupported deliveries do not trigger unnecessary retries.
+```ts
+import { handleWebhookRequest } from "creem-datafast/next";
+import { creemDataFast } from "@/lib/creem-datafast";
+
+export const runtime = "nodejs";
+
+export async function POST(request: Request) {
+  const result = await handleWebhookRequest(creemDataFast, request);
+
+  if (result.ignored) {
+    return new Response("Ignored", { status: 200 });
+  }
+
+  return new Response("OK", { status: 200 });
+}
+```
 
 ## Environment Variables
 
@@ -236,6 +238,4 @@ Paste this prompt into Claude Code, Cursor, Codex, or any AI coding agent:
 
 ```text
 Use curl to download, read and follow: https://raw.githubusercontent.com/santigamo/creem-datafast/main/SKILL.md
-
-Integrate creem-datafast into this project. Detect whether it uses Next.js or Express and implement the correct checkout + webhook flow. Keep changes minimal, use pnpm, and verify with the project's existing checks.
 ```
