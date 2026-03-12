@@ -195,3 +195,13 @@ Subpaths:
 ## Adoption Note
 
 This package is designed for easy adoption under `@creem_io/datafast` or any official Creem scope. The architecture keeps core logic separate from framework adapters to simplify future maintenance and namespace migration.
+
+## Integrate with AI Agents
+
+Paste this prompt into Claude Code, Cursor, Codex, or any AI coding agent:
+
+```text
+Use curl to download, read and follow: https://raw.githubusercontent.com/santigamo/creem-datafast/main/SKILL.md
+
+Integrate creem-datafast into this project. Detect whether it uses Next.js or Express and implement the correct checkout + webhook flow. Keep changes minimal, use pnpm, and verify with the project's existing checks.
+```

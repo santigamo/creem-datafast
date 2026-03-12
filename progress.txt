@@ -57,3 +57,10 @@
 - **Learnings for future iterations:**
   - Example-only configuration should be labeled explicitly in package docs when the example introduces extra env vars beyond the library surface.
 ---
+## 2026-03-12 19:38 - ai-agent-skill
+- Added a consumer-facing root `SKILL.md` for AI coding agents and a matching README section with a copy-paste prompt pointing at the raw GitHub URL.
+- Updated root agent guidance so future doc changes keep `SKILL.md` aligned with the README quickstarts.
+- Files changed: `README.md`, `SKILL.md`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Agent-facing docs work best when they are opinionated, execution-oriented, and mirror the supported integration paths exactly.
+---

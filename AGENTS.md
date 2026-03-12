@@ -9,3 +9,4 @@
 - The Next.js example uses TypeScript path aliases to point `creem-datafast` subpaths at `../src/*`, so example builds do not depend on prebuilt `dist/`.
 - The default idempotency behavior is intentionally minimal; production consumers should pass a real `idempotencyStore` if they need dedupe across processes.
 - Keep the root package export surface framework-agnostic and minimal; adapter/browser runtime APIs and their types belong on subpath entrypoints.
+- The root `SKILL.md` is consumer-facing documentation for AI coding agents; keep it aligned with the README quickstarts and the supported Next.js / Express integration patterns.
