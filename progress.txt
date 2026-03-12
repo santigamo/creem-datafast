@@ -38,3 +38,10 @@
   - Public API drift is easiest to catch by checking the built package exports, not just source files.
   - If an example must keep env lookup lazy for build-time safety, wrap the client methods lazily instead of changing the adapter contract.
 ---
+## 2026-03-12 19:22 - next-example-purity
+- Restored the Next.js webhook example to the canonical pattern from the plan by creating the `creem-datafast` client at module scope and passing it directly to `createNextWebhookHandler()`.
+- Verified that `example-next` still typechecks, and that `next build` succeeds when the required env vars are present while failing early when they are not.
+- Files changed: `example-next/app/api/webhook/creem/route.ts`
+- **Learnings for future iterations:**
+  - The canonical Next.js example is clearer than the lazy proxy version, but it requires webhook env vars to exist at build-time because the module is evaluated during `next build`.
+---
