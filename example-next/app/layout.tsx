@@ -1,17 +1,16 @@
 import Script from "next/script";
 import type { Metadata } from "next";
-import { Cormorant_Garamond, IBM_Plex_Mono } from "next/font/google";
+import { DM_Sans, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
 
-const displayFont = Cormorant_Garamond({
+const displayFont = DM_Sans({
   subsets: ["latin"],
-  style: ["normal", "italic"],
   variable: "--font-display",
   weight: ["400", "500", "600", "700"]
 });
 
-const monoFont = IBM_Plex_Mono({
+const monoFont = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   weight: ["400", "500"]

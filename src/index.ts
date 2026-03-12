@@ -25,9 +25,11 @@ export type {
   HandleWebhookParams,
   HandleWebhookResult,
   HeadersLike,
+  IgnoredWebhookResult,
   IdempotencyStore,
   LoggerLike,
   MetadataValue,
+  ProcessedWebhookResult,
   RequestLike,
   SupportedWebhookEvent
 } from "./core/types.js";

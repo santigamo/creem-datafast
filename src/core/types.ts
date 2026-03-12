@@ -71,6 +71,12 @@ export interface CreateCheckoutResult {
   raw: unknown;
 }
 
+/**
+ * Raw webhook input for Creem signature verification and processing.
+ *
+ * `rawBody` must be the exact unparsed request body string that Creem sent.
+ * Passing JSON that was parsed and re-serialized can break signature checks.
+ */
 export interface HandleWebhookParams {
   rawBody: string;
   headers: HeadersLike;
@@ -92,25 +98,43 @@ export interface DataFastPaymentPayload {
   timestamp?: string;
 }
 
+/**
+ * Successful webhook processing result for supported events that were forwarded
+ * to DataFast.
+ */
+export type ProcessedWebhookResult = {
+  ok: true;
+  ignored: false;
+  eventId: string;
+  eventType: SupportedWebhookEvent;
+  deduplicated: boolean;
+  payload: DataFastPaymentPayload;
+  datafastResponse: unknown;
+};
+
+/**
+ * Successful webhook result for deliveries that were intentionally ignored,
+ * such as unsupported event types or duplicates.
+ */
+export type IgnoredWebhookResult = {
+  ok: true;
+  ignored: true;
+  eventId?: string;
+  eventType?: string;
+  reason:
+    | "unsupported_event"
+    | "duplicate_event";
+};
+
+/**
+ * Discriminated result from webhook handling.
+ *
+ * Branch on `ignored` to distinguish forwarded payments from intentionally
+ * ignored deliveries.
+ */
 export type HandleWebhookResult =
-  | {
-      ok: true;
-      ignored: false;
-      eventId: string;
-      eventType: SupportedWebhookEvent;
-      deduplicated: boolean;
-      payload: DataFastPaymentPayload;
-      datafastResponse: unknown;
-    }
-  | {
-      ok: true;
-      ignored: true;
-      eventId?: string;
-      eventType?: string;
-      reason:
-        | "unsupported_event"
-        | "duplicate_event";
-    };
+  | ProcessedWebhookResult
+  | IgnoredWebhookResult;
 
 export interface CreemDataFastOptions {
   creemApiKey?: string;
@@ -132,9 +156,19 @@ export interface CreemDataFastClient {
     params: CreateCheckoutParams,
     context?: CreateCheckoutContext
   ): Promise<CreateCheckoutResult>;
+  /**
+   * Verifies, deduplicates, normalizes, and forwards a raw Creem webhook payload.
+   *
+   * Use this when you already have the exact raw request body and headers from your framework.
+   */
   handleWebhook(
     params: HandleWebhookParams
   ): Promise<HandleWebhookResult>;
+  /**
+   * Validates the `creem-signature` header against the exact raw webhook body.
+   *
+   * This is useful when you need signature checks separately from full webhook processing.
+   */
   verifyWebhookSignature(
     rawBody: string,
     headers: HeadersLike

@@ -5,6 +5,14 @@ import type {
   NextWebhookHandlerOptions
 } from "../core/types.js";
 
+/**
+ * Runs the core webhook flow from a standard Web `Request`.
+ *
+ * Prefer this when you want custom Next.js response logic but do not want to
+ * manually read `request.text()` and pass the raw body through yourself.
+ *
+ * Note: this consumes the request body stream.
+ */
 export async function handleWebhookRequest(
   client: CreemDataFastClient,
   request: Request
@@ -16,6 +24,12 @@ export async function handleWebhookRequest(
   });
 }
 
+/**
+ * Returns a ready-to-export Next.js route handler for the default webhook path.
+ *
+ * Prefer this for the minimal integration. Use `handleWebhookRequest()` instead
+ * when you need to branch on the webhook result or craft your own response.
+ */
 export function createNextWebhookHandler(
   client: CreemDataFastClient,
   options: NextWebhookHandlerOptions = {}
