@@ -168,6 +168,8 @@ Example app only:
 - `CREEM_PRODUCT_ID`: product used by your checkout endpoint.
 - `APP_BASE_URL`: base URL for success redirects and local webhook setup.
 - `CREEM_TEST_MODE`: example-app env var that maps to the `testMode` constructor option. Set it to `true` to target `https://test-api.creem.io`.
+- `DATAFAST_WEBSITE_ID`: DataFast website ID (e.g. `dfid_xxx`) for the tracking script.
+- `DATAFAST_DOMAIN`: domain registered in your DataFast dashboard.
 
 ## Testing Local
 
