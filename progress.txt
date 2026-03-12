@@ -109,3 +109,10 @@
   - Small JSDoc additions on exported union types and helpers pay off immediately in editor hover without forcing more complex runtime APIs.
   - Named aliases for discriminated union branches make consumer-side narrowing clearer than an anonymous inline union.
 ---
+## 2026-03-12 21:35 - packaging-polish
+- Completed first-party package metadata in `package.json`, updated the GitHub About section/topics, aligned CI with the declared Node support matrix, and tightened the README around compatibility, ESM-only usage, verified local flow, and webhook signature semantics.
+- Files changed: `package.json`, `.github/workflows/ci.yml`, `README.md`, `src/core/types.ts`, `src/index.ts`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - If the package promises `node >=18`, CI should exercise at least Node 18 and the current primary version so compatibility claims stay credible.
+  - Public helpers that mix boolean results with exceptional malformed-input cases need that contract stated in both JSDoc and README, not only in tests.
+---

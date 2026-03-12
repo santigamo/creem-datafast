@@ -65,6 +65,10 @@ export function createCreemDataFast(
         logger
       });
     },
+    /**
+     * Returns `true` for a valid signature and `false` for an invalid one.
+     * Throws `InvalidCreemSignatureError` when the `creem-signature` header is missing.
+     */
     verifyWebhookSignature(rawBody: string, headers: HeadersLike): boolean {
       const signature = extractHeader(headers, "creem-signature");
       if (!signature) {

@@ -1,6 +1,7 @@
 {
   "name": "creem-datafast",
   "version": "0.1.0",
+  "description": "Creem to DataFast bridge for checkout tracking and webhook forwarding.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -30,6 +31,23 @@
     "LICENSE"
   ],
   "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/santigamo/creem-datafast.git"
+  },
+  "homepage": "https://github.com/santigamo/creem-datafast#readme",
+  "bugs": {
+    "url": "https://github.com/santigamo/creem-datafast/issues"
+  },
+  "keywords": [
+    "creem",
+    "datafast",
+    "nextjs",
+    "express",
+    "webhooks",
+    "payments",
+    "analytics"
+  ],
   "engines": {
     "node": ">=18"
   },

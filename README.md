@@ -40,6 +40,14 @@ pnpm add creem-datafast
 
 Internally the package wraps the official `creem` Core SDK, so you do not need to install `creem` separately in a normal consumer app.
 
+## Compatibility
+
+- Node 18+
+- ESM-only package. Import with `import`, not `require()`.
+- Next.js Route Handlers on the Node runtime
+- Express webhook routes using `express.raw({ type: "application/json" })`
+- Supported webhook events: `checkout.completed`, `subscription.paid`
+
 ## Quickstart Next.js
 
 Install the package, create a shared client, then use the included route handler adapter.
@@ -194,9 +202,19 @@ pnpm --filter example-next dev
 
 Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/creem` through your tunnel of choice.
 
+### Verified Local Flow
+
+1. Copy `example-next/.env.example` to `example-next/.env.local` and fill in real Creem and DataFast test credentials.
+2. Start the example with `pnpm --filter example-next dev`.
+3. Expose `http://localhost:3000` through a tunnel such as `ngrok http 3000`.
+4. Set the Creem webhook endpoint to `https://<your-tunnel>/api/webhook/creem`.
+5. Open the example app, start a checkout, and complete a payment in Creem test mode.
+6. Expect the example server logs to show the webhook result and the payload forwarded to DataFast.
+
 ## Troubleshooting
 
 - Invalid webhook signature: make sure the handler reads the raw request body, not parsed JSON.
+- Missing `creem-signature` header: `verifyWebhookSignature()` and `handleWebhook()` throw `InvalidCreemSignatureError` because the request is malformed.
 - Missing visitor tracking: the checkout still works by default; enable `strictTracking` if you want the request to fail instead.
 - Wrong amount format: Creem amounts are interpreted as minor units and converted into decimal major units before sending to DataFast.
 - Duplicate forwards: pass a real `idempotencyStore` in production if you need dedupe across processes.
@@ -215,7 +233,7 @@ Root API:
 - `createCreemDataFast(options)`
 - `client.createCheckout(params, context?)`
 - `client.handleWebhook({ rawBody, headers })`
-- `client.verifyWebhookSignature(rawBody, headers)`
+- `client.verifyWebhookSignature(rawBody, headers)` returns `true` or `false` for signature validity and throws `InvalidCreemSignatureError` when `creem-signature` is missing.
 
 Subpaths:
 

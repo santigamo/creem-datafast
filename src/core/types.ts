@@ -168,6 +168,8 @@ export interface CreemDataFastClient {
    * Validates the `creem-signature` header against the exact raw webhook body.
    *
    * This is useful when you need signature checks separately from full webhook processing.
+   * Returns `true` for a valid signature and `false` for an invalid one.
+   * Throws `InvalidCreemSignatureError` when the `creem-signature` header is missing.
    */
   verifyWebhookSignature(
     rawBody: string,

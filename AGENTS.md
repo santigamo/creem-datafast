@@ -9,6 +9,8 @@
 - The Next.js example uses TypeScript path aliases to point `creem-datafast` subpaths at `../src/*`, so example builds do not depend on prebuilt `dist/`.
 - The default idempotency behavior is intentionally minimal; production consumers should pass a real `idempotencyStore` if they need dedupe across processes.
 - Keep the root package export surface framework-agnostic and minimal; adapter/browser runtime APIs and their types belong on subpath entrypoints.
+- The published package is ESM-only; keep README compatibility notes and package exports aligned so consumers do not assume `require()` support.
 - For Next.js custom webhook responses, prefer `handleWebhookRequest()` from `creem-datafast/next`; it shares the adapter path and consumes the `Request` body stream once.
 - Creem SDK transaction hydration uses numeric `createdAt` / `created_at` timestamps in milliseconds; fixtures should match that format so hydration tests catch unit mistakes.
+- If `package.json` claims Node compatibility through `engines`, the GitHub Actions matrix should exercise the minimum supported Node version plus the primary current version.
 - The root `SKILL.md` is consumer-facing documentation for AI coding agents; keep it aligned with the README quickstarts and the supported Next.js / Express integration patterns.
