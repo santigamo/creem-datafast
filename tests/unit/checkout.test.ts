@@ -1,4 +1,4 @@
-import { MissingTrackingError } from "../../src/core/errors.js";
+import { CreemDataFastError, MissingTrackingError } from "../../src/core/errors.js";
 import { createCheckout } from "../../src/core/checkout.js";
 import { noopLogger } from "../../src/core/logger.js";
 
@@ -119,5 +119,21 @@ describe("createCheckout", () => {
       logger: noopLogger,
       strictTracking: true
     })).rejects.toThrow(MissingTrackingError);
+  });
+
+  it("throws a generic package error when Creem returns an invalid checkout response", async () => {
+    creem.createCheckout.mockResolvedValueOnce({
+      id: "checkout_123"
+    });
+
+    await expect(createCheckout({
+      productId: "prod_123",
+      successUrl: "https://example.com/success"
+    }, undefined, {
+      captureSessionId: true,
+      creem,
+      logger: noopLogger,
+      strictTracking: false
+    })).rejects.toThrow(CreemDataFastError);
   });
 });

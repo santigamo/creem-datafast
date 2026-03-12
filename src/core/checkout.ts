@@ -1,7 +1,7 @@
 import { getHeaderValue } from "./headers.js";
 import { mergeTrackingIntoMetadata, readTrackingFromMetadata } from "./metadata.js";
 import { readTrackingFromCookieHeader } from "./cookies.js";
-import { MissingTrackingError } from "./errors.js";
+import { CreemDataFastError, MissingTrackingError } from "./errors.js";
 import type {
   CheckoutDependencies,
   CreateCheckoutContext,
@@ -80,7 +80,7 @@ export async function createCheckout(
   const checkoutUrl = raw.checkoutUrl ?? raw.checkout_url;
 
   if (typeof checkoutId !== "string" || typeof checkoutUrl !== "string") {
-    throw new MissingTrackingError("Creem checkout response is missing id or checkoutUrl.");
+    throw new CreemDataFastError("Creem checkout response is missing id or checkoutUrl.");
   }
 
   return {

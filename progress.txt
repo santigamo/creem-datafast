@@ -116,3 +116,9 @@
   - If the package promises `node >=18`, CI should exercise at least Node 18 and the current primary version so compatibility claims stay credible.
   - Public helpers that mix boolean results with exceptional malformed-input cases need that contract stated in both JSDoc and README, not only in tests.
 ---
+## 2026-03-12 22:12 - checkout-error-taxonomy
+- Corrected checkout response validation to throw `CreemDataFastError` instead of `MissingTrackingError` when the Creem SDK returns an invalid response, and added a regression test for that contract.
+- Files changed: `src/core/checkout.ts`, `tests/unit/checkout.test.ts`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Keep error subclasses semantic: tracking enforcement errors should stay separate from invalid upstream response contracts so consumers can branch on them safely.
+---
