@@ -116,6 +116,44 @@ export interface RetryConfig {
 }
 
 /**
+ * Minimal request shape that the injected Creem SDK checkout client must accept.
+ */
+export interface CreemCheckoutCreateRequest {
+  productId: string;
+  successUrl: string;
+  requestId?: string;
+  units?: number;
+  discountCode?: string;
+  customer?: CheckoutCustomerInput;
+  customFields?: CheckoutCustomFieldInput[];
+  metadata?: CheckoutMetadata;
+}
+
+/**
+ * Minimal response shape that `createCheckout()` must return for this package to work.
+ */
+export interface CreemCheckoutResponse {
+  id?: string;
+  checkoutUrl?: string;
+  checkout_url?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Minimal public contract for a custom Creem SDK instance injected through `creemClient`.
+ */
+export interface CreemSdkClientLike {
+  checkouts: {
+    create(
+      request: CreemCheckoutCreateRequest
+    ): Promise<CreemCheckoutResponse>;
+  };
+  transactions: {
+    getById(transactionId: string): Promise<unknown>;
+  };
+}
+
+/**
  * Successful webhook processing result for supported events that were forwarded
  * to DataFast.
  */
@@ -156,7 +194,7 @@ export type HandleWebhookResult =
 
 export interface CreemDataFastOptions {
   creemApiKey?: string;
-  creemClient?: unknown;
+  creemClient?: CreemSdkClientLike;
   creemWebhookSecret: string;
   datafastApiKey: string;
   testMode?: boolean;
@@ -221,23 +259,9 @@ export interface BrowserTrackingResult {
   sessionId?: string;
 }
 
-export interface InternalCreateCheckoutRequest {
-  productId: string;
-  successUrl: string;
-  requestId?: string;
-  units?: number;
-  discountCode?: string;
-  customer?: CheckoutCustomerInput;
-  customFields?: CheckoutCustomFieldInput[];
-  metadata?: CheckoutMetadata;
-}
+export type InternalCreateCheckoutRequest = CreemCheckoutCreateRequest;
 
-export interface InternalCheckoutResponse {
-  id?: string;
-  checkoutUrl?: string;
-  checkout_url?: string;
-  [key: string]: unknown;
-}
+export type InternalCheckoutResponse = CreemCheckoutResponse;
 
 export interface NormalizedTransaction {
   amount: number;

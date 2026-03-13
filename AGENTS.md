@@ -13,6 +13,7 @@
 - The default idempotency behavior uses an in-process `MemoryIdempotencyStore`; production consumers still need a real atomic `idempotencyStore` if they need dedupe across processes or restarts.
 - Production idempotency stores must implement atomic `claim` / `complete` / `release` semantics; never reintroduce split `has` / `set` checks around webhook forwarding.
 - Keep the root package export surface framework-agnostic and minimal; adapter/browser runtime APIs and their types belong on subpath entrypoints.
+- If the package exposes an injectable third-party client like `creemClient`, give it a small public TypeScript interface and keep that type aligned with the runtime validator.
 - Runtime error classes that consumers are expected to branch on with `instanceof` should be exported from the root package.
 - The published package is ESM-only; keep README compatibility notes and package exports aligned so consumers do not assume `require()` support.
 - For Next.js custom webhook responses, prefer `handleWebhookRequest()` from `creem-datafast/next`; it shares the adapter path and consumes the `Request` body stream once.

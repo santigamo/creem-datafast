@@ -1,4 +1,5 @@
 ## Codebase Patterns
+- Injectable third-party clients should expose a small public interface instead of `unknown`, and that type should stay aligned with the runtime validator.
 - Keep the root README focused on install/use/configure quickstart flow; move longer operational recipes with infrastructure snippets into `docs/` and link from the relevant README sections.
 - Packaged consumer smoke coverage should include every README-documented root import so published exports and docs cannot drift apart silently.
 - Runnable examples that use low-level helpers should model the documented error mapping contract, not just the success path.
@@ -310,4 +311,12 @@
 - **Learnings for future iterations:**
   - DataFast's browser script can auto-capture payments from success-page URL parameters, so server-side payment forwarding integrations must explicitly disable browser payment capture to avoid duplicate revenue.
   - Troubleshooting sections should call out duplicate-counting causes separately when they come from different layers, such as webhook retries versus browser-side payment capture.
+---
+## 2026-03-13 16:58 CET - typed-creem-client-contract
+- Replaced `creemClient?: unknown` with a public `CreemSdkClientLike` interface, added public checkout request/response aliases for that contract, and exported the type from the root package.
+- Reused the same public contract inside `createCreemClient()` while keeping runtime validation for malformed custom clients, and added both unit coverage plus packaged consumer smoke coverage for the typed injection path.
+- Files changed: `src/core/types.ts`, `src/core/creem-client.ts`, `src/index.ts`, `tests/unit/creem-client.test.ts`, `tests/smoke/consumer-node/index.ts`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - If a custom SDK can be injected through public options, the option type should expose the minimal supported contract instead of `unknown` so consumers keep autocomplete and early validation.
+  - Type-export smoke coverage is useful for public option contracts because runtime tests alone cannot catch a degraded TypeScript experience.
 ---

@@ -3,21 +3,14 @@ import { Creem } from "creem";
 import { CreemDataFastError } from "./errors.js";
 import type {
   CreemDataFastOptions,
-  InternalCheckoutResponse,
+  CreemSdkClientLike,
   InternalCreateCheckoutRequest,
   InternalCreemClient
 } from "./types.js";
 
-interface CreemSdkLike {
-  checkouts?: {
-    create(request: InternalCreateCheckoutRequest): Promise<InternalCheckoutResponse>;
-  };
-  transactions?: {
-    getById(transactionId: string): Promise<unknown>;
-  };
-}
-
-function assertCreemClient(candidate: unknown): asserts candidate is CreemSdkLike {
+function assertCreemClient(
+  candidate: unknown
+): asserts candidate is CreemSdkClientLike {
   if (
     !candidate ||
     typeof candidate !== "object" ||
@@ -52,7 +45,9 @@ export function createCreemClient(
     !sdkCandidate.transactions ||
     typeof sdkCandidate.transactions.getById !== "function"
   ) {
-    throw new CreemDataFastError("Provided creem client does not expose the expected SDK methods.");
+    throw new CreemDataFastError(
+      "Provided creem client does not expose the expected SDK methods."
+    );
   }
 
   return {
