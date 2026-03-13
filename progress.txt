@@ -452,3 +452,10 @@
   - If implementation normalizes case on external identifiers like currency codes, keep at least one regression that proves lowercase input still takes the correct branch.
   - Testing docs should state the limit of smoke coverage in plain language when the job name alone could be over-read by reviewers.
 ---
+## 2026-03-13 18:57 CET - judge-two-minute-readme
+- Added a top-level `Judge in 2 minutes` section to the root README with a linear Next.js demo path, an Express fallback note, and an exact signed-webhook command that reuses `tests/fixtures/checkout-completed.json`.
+- Files changed: `README.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - Reviewer-facing README sections work best when they privilege one canonical runnable example and demote alternatives to a short fallback note.
+  - If docs ask users to replay a signed webhook locally, reuse an existing tested fixture and show the signature-generation command inline so the path stays self-contained.
+---

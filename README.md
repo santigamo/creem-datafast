@@ -82,6 +82,53 @@ Internally the package wraps the official `creem` Core SDK, so you do not need t
 - Supported webhook events: `checkout.completed`, `subscription.paid`, `refund.created`
 - Refunds are forwarded as DataFast payments with `refunded: true`
 
+## Judge in 2 minutes
+
+Use `example-next` for the fastest end-to-end proof. It shows the landing page, launches a real checkout, and logs both the webhook outcome and the payload forwarded to DataFast.
+
+```bash
+pnpm install
+cp example-next/.env.example example-next/.env.local
+```
+
+Fill `example-next/.env.local` with real test values for `CREEM_API_KEY`, `CREEM_WEBHOOK_SECRET`, `DATAFAST_API_KEY`, `DATAFAST_WEBSITE_ID`, and `CREEM_PRODUCT_ID`. `APP_BASE_URL` can stay at `http://localhost:3000` for a local run.
+
+```bash
+pnpm build
+pnpm --filter example-next dev
+```
+
+Then:
+
+1. Open `http://localhost:3000`.
+2. Click `Launch checkout via server cookie capture` to see the hosted checkout flow the package creates.
+3. In another terminal, send the fixed webhook fixture already used by the test suite:
+
+```bash
+export CREEM_WEBHOOK_SECRET=your_real_webhook_secret
+curl -i http://localhost:3000/api/webhook/creem \
+  -H "content-type: application/json" \
+  -H "creem-signature: $(node --input-type=module -e 'import { createHmac } from \"node:crypto\"; import { readFileSync } from \"node:fs\"; const rawBody = readFileSync(\"tests/fixtures/checkout-completed.json\", \"utf8\"); process.stdout.write(createHmac(\"sha256\", process.env.CREEM_WEBHOOK_SECRET).update(rawBody).digest(\"hex\"));')" \
+  --data-binary @tests/fixtures/checkout-completed.json
+```
+
+You should see:
+
+- `HTTP/1.1 200 OK` from the webhook route
+- `[example-next] forwarding payload to DataFast ...`
+- `[example-next] webhook processed ...`
+
+If you prefer Express, swap the env file and dev command:
+
+```bash
+cp example-express/.env.example example-express/.env.local
+pnpm --filter example-express dev
+```
+
+Use the same fixture and `curl` command against `http://localhost:3000/api/webhook/creem`. The key success signal there is `[example-express] forwarding payload to DataFast ...`.
+
+For the longer setup, tunnel, and verification flow, see [`example-next/README.md`](./example-next/README.md), [`example-express/README.md`](./example-express/README.md), and [Manual Local Verification](#manual-local-verification).
+
 ## Quickstart Next.js
 
 Install the package, create a shared client, then use the included route handler adapter.
