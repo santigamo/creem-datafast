@@ -15,20 +15,8 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
-    "baseUrl": ".",
-    "paths": {
-      "creem-datafast": [
-        "../src/index.ts"
-      ],
-      "creem-datafast/next": [
-        "../src/next.ts"
-      ],
-      "creem-datafast/client": [
-        "../src/client.ts"
-      ]
-    },
     "plugins": [
       {
         "name": "next"
@@ -39,7 +27,8 @@
     "**/*.ts",
     "**/*.tsx",
     "next-env.d.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

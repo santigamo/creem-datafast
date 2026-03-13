@@ -44,7 +44,8 @@ Internally the package wraps the official `creem` Core SDK, so you do not need t
 
 ## Compatibility
 
-- Node 18+
+- Library runtime: Node 18+
+- `example-next`: Node 20.9+ because it uses Next.js 16
 - ESM-only package. Import with `import`, not `require()`.
 - Next.js Route Handlers on the Node runtime
 - Express webhook routes using `express.raw({ type: "application/json" })`
@@ -197,25 +198,35 @@ pnpm smoke:consumer
 
 These same checks run in GitHub Actions on every push and pull request.
 
+GitHub Actions validates the root package and the Next.js example separately:
+
+- `package` runs on Node 18 and 20 and checks `build`, `typecheck`, `test`, and `smoke:consumer`.
+- `example-next` runs on Node 20.9+ because Next.js 16 requires it, builds the root package first, then checks `typecheck` plus `build`.
+- The `example-next` CI job uses placeholder env values so it validates compilation of the workspace package integration only; it does not call real Creem or DataFast services.
+
 `pnpm smoke:consumer` packs the real `.tgz`, installs it into an isolated TypeScript consumer fixture, runs `tsc --noEmit`, and verifies the root plus `next`, `express`, and `client` subpath imports at runtime.
 
 Example app:
 
 ```bash
 cp example-next/.env.example example-next/.env.local
+pnpm build
 pnpm --filter example-next dev
 ```
+
+`example-next` consumes the built workspace package from the repository root, so rerun `pnpm build` after changing library source before restarting or rebuilding the example.
 
 Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/creem` through your tunnel of choice.
 
 ### Verified Local Flow
 
 1. Copy `example-next/.env.example` to `example-next/.env.local` and fill in real Creem and DataFast test credentials.
-2. Start the example with `pnpm --filter example-next dev`.
-3. Expose `http://localhost:3000` through a tunnel such as `ngrok http 3000`.
-4. Set the Creem webhook endpoint to `https://<your-tunnel>/api/webhook/creem`.
-5. Open the example app, start a checkout, and complete a payment in Creem test mode.
-6. Expect the example server logs to show the webhook result and the payload forwarded to DataFast.
+2. Run `pnpm build` at the repository root so `dist/` reflects your current library changes.
+3. Start the example with `pnpm --filter example-next dev`.
+4. Expose `http://localhost:3000` through a tunnel such as `ngrok http 3000`.
+5. Set the Creem webhook endpoint to `https://<your-tunnel>/api/webhook/creem`.
+6. Open the example app, start a checkout, and complete a payment in Creem test mode.
+7. Expect the example server logs to show the webhook result and the payload forwarded to DataFast.
 
 ## Troubleshooting
 

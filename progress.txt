@@ -9,6 +9,8 @@
 - Next.js-specific webhook conveniences belong in `creem-datafast/next`; if they accept `Request`, document clearly that they consume the body stream once.
 - Creem transaction hydration fixtures should use millisecond `createdAt` values to match the SDK and catch timestamp unit regressions.
 - Distribution confidence should come from installing the packed `.tgz` into an isolated consumer fixture and checking root plus subpath imports, not from importing source files inside the repo.
+- Keep root-package CI separate from framework-example CI when their runtime floors differ; the library's Node support claim should be validated independently from `example-next`'s Next.js minimum.
+- Workspace examples should import the built root package via `workspace:*` and `exports`, not source aliases to `../src/*`; packaged smoke tests already cover the tarball case.
 
 ## 2026-03-12 18:45 - setup
 - Initialized the `creem-datafast` package from scratch with strict TypeScript, `tsup`, `vitest`, and a pnpm workspace for the example app.
@@ -138,4 +140,28 @@
 - **Learnings for future iterations:**
   - Consumer smoke fixtures should be copied into a temporary directory before install so the repo does not accumulate test-only lockfiles or `node_modules`.
   - Root `tsconfig` should exclude packaged-consumer fixtures; those imports are supposed to resolve only after installing the tarball under test.
+---
+## 2026-03-13 12:05 - ci-split-package-example
+- Split GitHub Actions into a root package job and a separate `example-next` job so the library validates on Node 18/20 while the Next 16 example validates on Node 20.9+.
+- Added the packaged consumer smoke test to CI, documented the compatibility split in the root README, clarified the example README Node floor, pinned the example Next scripts to `--webpack`, and kept the Next-generated TypeScript config updates that the example build now expects.
+- Files changed: `.github/workflows/ci.yml`, `README.md`, `example-next/README.md`, `example-next/package.json`, `example-next/tsconfig.json`, `example-next/next-env.d.ts`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - If an example app has a stricter runtime floor than the published package, keep them in separate CI jobs so the package compatibility claim stays credible.
+  - Next.js example builds may need placeholder env vars in CI when route modules instantiate clients at module scope during `next build`.
+  - Next.js 16 examples with custom webpack config need explicit `--webpack` scripts until their config is migrated to Turbopack.
+  - If Next.js rewrites the example TypeScript config during build, commit those mandatory changes instead of letting the repo drift on every validation run.
+---
+## 2026-03-13 12:18 - ci-required-checks-docs
+- Clarified in the root README that the `example-next` CI job uses placeholder env values and only proves the example compiles, while the package job is the one that exercises the packaged consumer smoke test.
+- Files changed: `README.md`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Be explicit when a CI job is compile-only with dummy env so reviewers do not mistake it for an end-to-end integration signal.
+---
+## 2026-03-13 12:42 - example-workspace-exports
+- Migrated `example-next` to consume the built root workspace package via normal package exports, removed direct source aliases and the custom webpack config, and made CI build the root package before validating the example.
+- Updated the READMEs to document the explicit `pnpm build` step before running the example after library changes.
+- Files changed: `.github/workflows/ci.yml`, `README.md`, `example-next/README.md`, `example-next/package.json`, `example-next/tsconfig.json`, `example-next/next.config.ts`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - If a workspace example should represent real consumer usage, make it resolve the package through `exports` and require a root build instead of adding source-level aliasing.
+  - Keep packaged distribution checks in `smoke:consumer`; example apps should validate integration against the current workspace package, not duplicate tarball-install coverage.
 ---

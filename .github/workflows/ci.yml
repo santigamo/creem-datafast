@@ -5,7 +5,8 @@ on:
   pull_request:
 
 jobs:
-  checks:
+  package:
+    name: Package (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -32,8 +33,48 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Typecheck
+        run: pnpm typecheck
+
       - name: Test
         run: pnpm test
 
-      - name: Typecheck
-        run: pnpm typecheck
+      - name: Packaged consumer smoke test
+        run: pnpm smoke:consumer
+
+  example-next:
+    name: Example Next.js (Node 20.9+)
+    runs-on: ubuntu-latest
+    env:
+      APP_BASE_URL: http://localhost:3000
+      CREEM_API_KEY: ci_creem_api_key
+      CREEM_PRODUCT_ID: ci_product_id
+      CREEM_TEST_MODE: "true"
+      CREEM_WEBHOOK_SECRET: ci_webhook_secret
+      DATAFAST_API_KEY: ci_datafast_api_key
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.9.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build package
+        run: pnpm build
+
+      - name: Typecheck example-next
+        run: pnpm --filter example-next typecheck
+
+      - name: Build example-next
+        run: pnpm --filter example-next build
