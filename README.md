@@ -340,11 +340,35 @@ Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/
 
 ## Idempotency
 
-Out of the box, `handleWebhook()` deduplicates webhook deliveries using an in-process `MemoryIdempotencyStore`. This prevents double-counting revenue within a single server process without any extra configuration.
+`handleWebhook()` uses an in-process `MemoryIdempotencyStore` by default. This is convenient for local development and single-instance deployments, but it is not safe for multi-instance production environments because deduplication does not survive process restarts or span multiple instances.
 
-For multi-instance production deployments (e.g. multiple serverless functions or horizontally scaled servers), pass a durable atomic store so deduplication survives process restarts and works across instances.
+Recommended production setup:
 
-See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for the atomic `IdempotencyStore` contract, a copy-paste Redis / Upstash recipe, TTL guidance, and how to wire it into `createCreemDataFast()`.
+```bash
+pnpm add @upstash/redis
+```
+
+```ts
+import { Redis } from "@upstash/redis";
+import { createCreemDataFast } from "creem-datafast";
+import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!
+});
+
+export const creemDataFast = createCreemDataFast({
+  creemApiKey: process.env.CREEM_API_KEY!,
+  creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  datafastApiKey: process.env.DATAFAST_API_KEY!,
+  idempotencyStore: createUpstashIdempotencyStore(redis)
+});
+```
+
+Use a shared atomic store like this for Vercel, Railway, Render, AWS Lambda, or any horizontally scaled deployment where the same webhook may reach more than one process.
+
+See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for the `IdempotencyStore` contract, TTL guidance, the official Upstash helper, and how to implement a custom store.
 
 ## Troubleshooting
 
@@ -354,7 +378,7 @@ See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for the
 - Double-counted revenue from DataFast: if you use the DataFast tracking script alongside server-side webhook forwarding, the same payment can be recorded twice — once by the script detecting URL parameters on the success page, and once by the webhook. Add `data-disable-payments="true"` to the DataFast script tag when using `creem-datafast` for server-side attribution.
 - Wrong amount format: Creem amounts are interpreted as minor units and converted into decimal major units before sending to DataFast.
 - Refund semantics: `refund.created` forwards the refunded amount as a new DataFast payment with `refunded: true` and uses the Creem refund id as `transaction_id`.
-- Duplicate forwards: the built-in `MemoryIdempotencyStore` deduplicates within a single process. For multi-instance deployments, pass a durable atomic `idempotencyStore`. See [`docs/production-idempotency.md`](./docs/production-idempotency.md).
+- Duplicate forwards: the built-in `MemoryIdempotencyStore` is `dev / single-instance only`. For multi-instance deployments, pass a durable atomic `idempotencyStore` such as `createUpstashIdempotencyStore(redis)`. See [`docs/production-idempotency.md`](./docs/production-idempotency.md).
 - Slow or flaky DataFast responses: forwarding uses an `8000ms` timeout by default and retries only network errors, timeouts, and `408` / `429` / `5xx` responses.
 
 ## API Reference
@@ -371,6 +395,7 @@ import {
 import { createNextWebhookHandler } from "creem-datafast/next";
 import { createExpressWebhookHandler } from "creem-datafast/express";
 import { appendDataFastTracking, getDataFastTracking } from "creem-datafast/client";
+import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
 ```
 
 Root API:
@@ -392,6 +417,7 @@ Subpaths:
 - `creem-datafast/next`
 - `creem-datafast/express`
 - `creem-datafast/client`
+- `creem-datafast/idempotency/upstash`
 
 Next.js helpers:
 

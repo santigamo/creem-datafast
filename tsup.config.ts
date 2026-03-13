@@ -6,6 +6,7 @@ export default defineConfig({
   entry: {
     client: "src/client.ts",
     express: "src/express.ts",
+    "idempotency/upstash": "src/idempotency/upstash.ts",
     index: "src/index.ts",
     next: "src/next.ts"
   },

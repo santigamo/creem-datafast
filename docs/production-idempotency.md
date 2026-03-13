@@ -1,6 +1,6 @@
 # Production Idempotency
 
-By default `creem-datafast` uses an in-process `MemoryIdempotencyStore` that deduplicates webhook deliveries within a single server process. This is safe for single-instance setups but does not survive restarts or work across multiple instances. For production, pass a durable atomic store so deduplication survives process restarts and blocks concurrent deliveries across multiple instances.
+By default `creem-datafast` uses an in-process `MemoryIdempotencyStore` that deduplicates webhook deliveries within a single server process. Treat that default as `dev / single-instance only`. For production, pass a durable atomic store so deduplication survives process restarts and blocks concurrent deliveries across multiple instances.
 
 ## Interface
 
@@ -40,7 +40,7 @@ Use a durable shared store such as Redis so:
 
 `creem-datafast` stores keys as `creem:event:{eventId}`.
 
-## Redis / Upstash Recipe
+## Official Upstash Helper
 
 Install the dependency:
 
@@ -48,50 +48,52 @@ Install the dependency:
 pnpm add @upstash/redis
 ```
 
-Create a store implementation:
+Create the Redis client and adapter:
 
 ```ts
 import { Redis } from "@upstash/redis";
-import type { IdempotencyStore } from "creem-datafast";
+import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!
 });
 
-export const redisIdempotencyStore: IdempotencyStore = {
-  async claim(key, ttlSeconds = 300) {
-    const result = await redis.set(key, "processing", {
-      ex: ttlSeconds,
-      nx: true
-    });
-    return result === "OK";
-  },
-  async complete(key, ttlSeconds = 86400) {
-    await redis.set(key, "processed", { ex: ttlSeconds });
-  },
-  async release(key) {
-    await redis.del(key);
-  }
-};
+export const redisIdempotencyStore = createUpstashIdempotencyStore(redis);
 ```
 
 Pass it to `createCreemDataFast()`:
 
 ```ts
 import { createCreemDataFast } from "creem-datafast";
-import { redisIdempotencyStore } from "./redis-idempotency-store";
+import { Redis } from "@upstash/redis";
+import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!
+});
 
 export const creemDataFast = createCreemDataFast({
   creemApiKey: process.env.CREEM_API_KEY!,
   creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
   datafastApiKey: process.env.DATAFAST_API_KEY!,
-  idempotencyStore: redisIdempotencyStore,
+  idempotencyStore: createUpstashIdempotencyStore(redis),
   // optional — defaults to 300 seconds
   idempotencyInFlightTtlSeconds: 300,
   // optional — defaults to 86400 seconds (24 h)
   idempotencyProcessedTtlSeconds: 86400
 });
 ```
+
+The helper uses the same atomic `claim` / `complete` / `release` contract as the core package:
+
+- `claim()` writes `processing` with `NX`
+- `complete()` replaces it with `processed`
+- `release()` deletes the in-flight key after a failed attempt
+
+## Custom Stores
+
+If you prefer another provider, implement the same `IdempotencyStore` interface and pass it through `createCreemDataFast({ idempotencyStore })`.
 
 If webhook processing fails before the DataFast forward completes, the package calls `release()` so a retry can claim the event again. After a successful forward, it calls `complete()` so later duplicates are ignored for the full processed TTL.

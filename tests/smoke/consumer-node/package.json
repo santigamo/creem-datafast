@@ -8,6 +8,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "@upstash/redis": "^1.37.0",
     "typescript": "^5.9.3"
   }
 }

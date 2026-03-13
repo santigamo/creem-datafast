@@ -19,6 +19,7 @@
 - DataFast forwarding should use explicit per-request timeouts and bounded retries in the core client; retry only network errors, timeout aborts, and HTTP `408` / `429` / `5xx`.
 - Workspace examples should import the built root package through published `exports`; rebuild the root package before running the example after library changes.
 - Keep `creem-datafast` root exports limited to the framework-agnostic core; adapter/browser APIs and their types should stay on subpath entrypoints.
+- Provider-specific infrastructure helpers should live on responsibility-scoped subpaths with optional peer dependencies so the default install stays lightweight.
 - Runtime error classes that consumer code may branch on should be exported from the root package, not only from internal files.
 - Next.js-specific webhook conveniences belong in `creem-datafast/next`; if they accept `Request`, document clearly that they consume the body stream once.
 - Creem transaction hydration fixtures should use millisecond `createdAt` values to match the SDK and catch timestamp unit regressions.
@@ -357,4 +358,13 @@
 - **Learnings for future iterations:**
   - When examples expose the same flow through different framework adapters, README run instructions should name the visible entry point explicitly instead of saying "same flow as before".
   - If a documented code sample imports from multiple package entrypoints, say why in prose so the public surface split is obvious to first-time users.
+---
+## 2026-03-13 17:45 CET - official-upstash-idempotency-subpath
+- Added an official `creem-datafast/idempotency/upstash` helper that turns an Upstash Redis client into the package `IdempotencyStore` contract without expanding the root export surface.
+- Extended the package exports, packaged consumer smoke coverage, and unit coverage so the new subpath is validated from the built tarball and the helper preserves the expected `claim` / `complete` / `release` TTL semantics.
+- Reframed the README and production idempotency docs so `MemoryIdempotencyStore` is clearly `dev / single-instance only` and the Upstash helper is the recommended production path for distributed deployments.
+- Files changed: `src/idempotency/upstash.ts`, `tests/unit/upstash-idempotency.test.ts`, `tests/smoke/consumer-node/*`, `tsup.config.ts`, `package.json`, `pnpm-lock.yaml`, `README.md`, `docs/production-idempotency.md`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - Optional third-party production helpers can stay inside the package when they are exposed from a narrow subpath and backed by an optional peer dependency.
+  - If README recommends a non-root import, the packaged smoke consumer should import that exact subpath so docs and published exports cannot drift.
 ---

@@ -8,6 +8,8 @@ import {
   MissingTrackingError,
   createCreemDataFast
 } from "creem-datafast";
+import { Redis } from "@upstash/redis";
+import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
 
 const creemClient: CreemSdkClientLike = {
   checkouts: {
@@ -34,4 +36,6 @@ void DataFastRequestError;
 void InvalidCreemSignatureError;
 void MemoryIdempotencyStore;
 void MissingTrackingError;
+void Redis;
+void createUpstashIdempotencyStore;
 void options;

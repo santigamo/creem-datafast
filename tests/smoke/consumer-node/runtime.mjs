@@ -1,5 +1,6 @@
 import * as browserModule from "creem-datafast/client";
 import * as expressModule from "creem-datafast/express";
+import * as upstashModule from "creem-datafast/idempotency/upstash";
 import * as nextModule from "creem-datafast/next";
 import * as rootModule from "creem-datafast";
 
@@ -18,3 +19,8 @@ assertFunction("creem-datafast", rootModule, "MissingTrackingError");
 assertFunction("creem-datafast/next", nextModule, "createNextWebhookHandler");
 assertFunction("creem-datafast/express", expressModule, "createExpressWebhookHandler");
 assertFunction("creem-datafast/client", browserModule, "getDataFastTracking");
+assertFunction(
+  "creem-datafast/idempotency/upstash",
+  upstashModule,
+  "createUpstashIdempotencyStore"
+);
