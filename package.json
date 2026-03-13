@@ -62,6 +62,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "format": "biome format --write src tests scripts example-next example-express package.json tsconfig.json tsup.config.ts vitest.config.ts biome.json",
     "format:check": "biome check --javascript-linter-enabled=false --json-linter-enabled=false --css-linter-enabled=false --graphql-linter-enabled=false --grit-linter-enabled=false --html-linter-enabled=false --assist-enabled=false src tests scripts example-next example-express package.json tsconfig.json tsup.config.ts vitest.config.ts biome.json",
     "lint": "biome lint src tests scripts example-next example-express package.json tsconfig.json tsup.config.ts vitest.config.ts biome.json",
     "pack:local": "pnpm build && pnpm pack --pack-destination .artifacts",

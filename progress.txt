@@ -411,3 +411,9 @@
   - The first Biome adoption pass is a good moment to let it surface real cleanup items like unused imports and a11y issues in example apps, not only formatting drift.
   - If CI already has a Node version matrix, coverage can stay visible without doubling every lane by running the plain test suite on the minimum-runtime lane and `test:coverage` on the primary lane.
 ---
+## 2026-03-13 18:42 CET - biome-format-script
+- Added a `pnpm format` autofix script alongside `pnpm format:check` so contributors can apply the Biome formatting scope locally without retyping the path list.
+- Files changed: `package.json`, `progress.txt`
+- **Learnings for future iterations:**
+  - When a repo adds a check-only formatting script, pair it immediately with the equivalent write-mode script so the contributor loop stays one command away from green.
+---
