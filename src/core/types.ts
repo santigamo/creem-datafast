@@ -100,6 +100,12 @@ export interface DataFastPaymentPayload {
   timestamp?: string;
 }
 
+export interface RetryConfig {
+  retries?: number;
+  baseDelayMs?: number;
+  maxDelayMs?: number;
+}
+
 /**
  * Successful webhook processing result for supported events that were forwarded
  * to DataFast.
@@ -150,6 +156,8 @@ export interface CreemDataFastOptions {
   idempotencyTtlSeconds?: number;
   logger?: LoggerLike;
   idempotencyStore?: IdempotencyStore;
+  timeoutMs?: number;
+  retry?: RetryConfig;
   fetch?: typeof globalThis.fetch;
 }
 

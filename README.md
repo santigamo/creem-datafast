@@ -185,6 +185,13 @@ Example app only:
 - `DATAFAST_WEBSITE_ID`: DataFast website ID (e.g. `dfid_xxx`) for the tracking script.
 - `DATAFAST_DOMAIN`: domain registered in your DataFast dashboard.
 
+Optional constructor hardening:
+
+- `timeoutMs`: per-request timeout for DataFast forwarding. Defaults to `8000`.
+- `retry.retries`: number of retry attempts after the first DataFast request. Defaults to `1`.
+- `retry.baseDelayMs`: base backoff delay in milliseconds. Defaults to `250`.
+- `retry.maxDelayMs`: maximum backoff delay in milliseconds. Defaults to `2000`.
+
 ## Testing Local
 
 Package checks:
@@ -236,6 +243,7 @@ Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/
 - Wrong amount format: Creem amounts are interpreted as minor units and converted into decimal major units before sending to DataFast.
 - Refund semantics: `refund.created` forwards the refunded amount as a new DataFast payment with `refunded: true` and uses the Creem refund id as `transaction_id`.
 - Duplicate forwards: pass a real `idempotencyStore` in production if you need dedupe across processes.
+- Slow or flaky DataFast responses: forwarding uses an `8000ms` timeout by default and retries only network errors, timeouts, and `408` / `429` / `5xx` responses.
 
 ## API Reference
 

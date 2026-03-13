@@ -31,6 +31,7 @@ export type {
   MetadataValue,
   ProcessedWebhookResult,
   RequestLike,
+  RetryConfig,
   SupportedWebhookEvent
 } from "./core/types.js";
 

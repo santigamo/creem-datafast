@@ -8,17 +8,18 @@
 - Map `refund.created` into a new DataFast payment with `refunded: true` and use the Creem refund id as `transaction_id`; do not reuse the original transaction id.
 - `subscription.paid` should prefer hydrated transaction data from `last_transaction_id` and only fall back to `product.price` / `product.currency` if hydration fails.
 - Creem webhook payloads may send `object.customer` either as a hydrated object or as a string id; mapping code must preserve `customer_id` in both shapes.
-- The Next.js example uses TypeScript path aliases to point `creem-datafast` subpaths at `../src/*`, so example builds do not depend on prebuilt `dist/`.
 - The default idempotency behavior is intentionally minimal; production consumers should pass a real `idempotencyStore` if they need dedupe across processes.
 - Keep the root package export surface framework-agnostic and minimal; adapter/browser runtime APIs and their types belong on subpath entrypoints.
 - The published package is ESM-only; keep README compatibility notes and package exports aligned so consumers do not assume `require()` support.
 - For Next.js custom webhook responses, prefer `handleWebhookRequest()` from `creem-datafast/next`; it shares the adapter path and consumes the `Request` body stream once.
 - Creem SDK transaction hydration uses numeric `createdAt` / `created_at` timestamps in milliseconds; fixtures should match that format so hydration tests catch unit mistakes.
+- DataFast forwarding should use explicit timeouts and bounded retries in `src/core/datafast-client.ts`; retry only network errors, timeout aborts, and HTTP `408` / `429` / `5xx`, never broad `4xx`.
 - If `package.json` claims Node compatibility through `engines`, the GitHub Actions matrix should exercise the minimum supported Node version plus the primary current version.
 - Keep library CI separate from framework example CI when their Node requirements differ; `example-next` follows Next.js runtime minimums and should not dilute the root package's `node >=18` claim.
 - `example-next` should consume the root workspace package through its published `exports`, not `../src/*`; rebuild the root package before running the example after library changes.
 - If the package claims `node >=18`, keep the test runner on a Node-18-compatible major; `vitest` 4 requires Node 20+ and breaks the minimum-version CI job.
 - When `next build` updates `example-next/tsconfig.json` or `example-next/next-env.d.ts` with mandatory Next.js TypeScript settings, keep those generated changes so future builds stay clean.
 - Example-app CI may use placeholder env vars strictly to prove the app typechecks/builds; keep that documented so nobody reads the example job as a live integration check.
+- Keep GitHub Actions JavaScript actions on majors that support the current runner runtime; `actions/checkout@v5` and `actions/setup-node@v5` avoid the Node 20 deprecation warning.
 - The root `SKILL.md` is consumer-facing documentation for AI coding agents; keep it aligned with the README quickstarts and the supported Next.js / Express integration patterns.
 - Distribution regressions are easiest to catch by installing the packed `.tgz` into an isolated consumer fixture; keep `pnpm smoke:consumer` aligned with the published exports and subpaths.
