@@ -302,6 +302,7 @@ Automated integration coverage:
 - Runs against the real `example-express` runtime app over local HTTP.
 - Covers checkout creation, tracking injection, webhook signature verification, event mapping, and DataFast forwarding.
 - Stubs only the external Creem SDK calls and outbound DataFast request, so this remains an integration test rather than a browser E2E.
+- The Express example app factory also accepts injected checkout config in tests, so runtime coverage does not depend on example env vars just to exercise `/api/checkout`.
 
 Runnable examples:
 

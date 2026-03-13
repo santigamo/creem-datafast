@@ -136,4 +136,41 @@ describe("example-express runtime app", () => {
     expect(response.status).toBe(400);
     expect(await response.text()).toBe("Invalid signature");
   });
+
+  it("uses injected checkout config so checkout requests do not require example env", async () => {
+    const createCheckout = vi.fn(async () => ({
+      checkoutId: "checkout_123",
+      checkoutUrl: "https://creem.test/checkout/123",
+      finalMetadata: {},
+      injectedTracking: {},
+      raw: {}
+    }));
+    const app = createExampleExpressApp({
+      checkoutConfig: {
+        appBaseUrl: "http://127.0.0.1:3000",
+        productId: "prod_test_123"
+      },
+      client: createClient({ createCheckout })
+    });
+
+    server = app.listen(0, "127.0.0.1");
+    const port = await getListeningPort(server);
+
+    const response = await fetch(`http://127.0.0.1:${port}/api/checkout`, {
+      method: "POST",
+      redirect: "manual"
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("https://creem.test/checkout/123");
+    expect(createCheckout).toHaveBeenCalledWith({
+      productId: "prod_test_123",
+      successUrl: "http://127.0.0.1:3000/success"
+    }, {
+      request: expect.objectContaining({
+        headers: expect.any(Object),
+        url: "/api/checkout"
+      })
+    });
+  });
 });

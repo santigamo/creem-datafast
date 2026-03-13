@@ -4,8 +4,14 @@ import type { CreemDataFastClient } from "creem-datafast";
 
 import { getCreemDataFastClient, getExampleConfig } from "./creem-datafast.js";
 
+type ExampleExpressCheckoutConfig = {
+  appBaseUrl: string;
+  productId: string;
+};
+
 type ExampleExpressAppOptions = {
   client?: CreemDataFastClient;
+  checkoutConfig?: ExampleExpressCheckoutConfig;
 };
 
 export function createExampleExpressApp(
@@ -13,6 +19,7 @@ export function createExampleExpressApp(
 ): Express {
   const app = express();
   const client = options.client ?? getCreemDataFastClient();
+  const checkoutConfig = options.checkoutConfig;
 
   app.disable("x-powered-by");
 
@@ -22,7 +29,7 @@ export function createExampleExpressApp(
 
   app.post("/api/checkout", async (req, res, next) => {
     try {
-      const config = getExampleConfig();
+      const config = checkoutConfig ?? getExampleCheckoutConfig();
       const { checkoutUrl } = await client.createCheckout(
         {
           productId: config.productId,
@@ -62,6 +69,15 @@ export function createExampleExpressApp(
   });
 
   return app;
+}
+
+function getExampleCheckoutConfig(): ExampleExpressCheckoutConfig {
+  const config = getExampleConfig();
+
+  return {
+    appBaseUrl: config.appBaseUrl,
+    productId: config.productId
+  };
 }
 
 function renderPage(): string {

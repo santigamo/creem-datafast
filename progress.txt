@@ -1,6 +1,7 @@
 ## Codebase Patterns
 - Injectable third-party clients should expose a small public interface instead of `unknown`, and that type should stay aligned with the runtime validator.
 - Runtime integration coverage for runnable examples should boot the real app and inject a real `createCreemDataFast()` client while faking only the external Creem/DataFast edges.
+- Runnable example factories that accept injected clients should also accept injected route config, and runtime tests that cross the package boundary should construct clients from the published package surface so error-class `instanceof` checks stay aligned.
 - Keep the root README focused on install/use/configure quickstart flow; move longer operational recipes with infrastructure snippets into `docs/` and link from the relevant README sections.
 - Packaged consumer smoke coverage should include every README-documented root import so published exports and docs cannot drift apart silently.
 - Runnable examples that use low-level helpers should model the documented error mapping contract, not just the success path.
@@ -328,4 +329,12 @@
 - **Learnings for future iterations:**
   - `example-express` still calls `getExampleConfig()` inside the checkout route even when a custom client is injected, so runtime integration tests need placeholder env vars as well as fake external clients.
   - The strongest low-cost integration signal for runnable examples is real local HTTP plus a real package client, with only the upstream SDK and outbound network calls stubbed.
+---
+## 2026-03-13 17:12 CET - example-express-config-injection
+- Added injected checkout config support to the `example-express` app factory so checkout-route tests no longer depend on example env vars when a custom client is supplied.
+- Extended runtime coverage with the real invalid-signature webhook path and added a unit regression that proves `/api/checkout` works with injected config plus an injected client.
+- Files changed: `example-express/src/app.ts`, `tests/integration/example-express-full-flow.test.ts`, `tests/unit/example-express-app.test.ts`, `README.md`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - If a runnable example route still reads env-backed config after client injection, runtime tests will carry unnecessary setup and hide a real coupling in the example factory.
+  - When a runtime integration test mixes example code imported from the built package with source-imported helpers, `instanceof` checks can drift across duplicate error class copies; build the injected client from the package surface in those tests.
 ---

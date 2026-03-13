@@ -5,20 +5,13 @@ import checkoutCompletedFixture from "../fixtures/checkout-completed.json";
 import subscriptionPaidFixture from "../fixtures/subscription-paid.json";
 import transactionFixture from "../fixtures/transaction.json";
 
-import { createCreemDataFast } from "../../src/index.js";
+import { createCreemDataFast } from "creem-datafast";
 import { createExampleExpressApp } from "../../example-express/src/app.js";
 
 const WEBHOOK_SECRET = "whsec_runtime_integration";
 const DATAFAST_API_KEY = "datafast_runtime_integration";
 const CHECKOUT_URL = "https://creem.test/checkout/123";
 const VISITOR_ID = "abc";
-const REQUIRED_ENV = {
-  APP_BASE_URL: "http://127.0.0.1:3000",
-  CREEM_API_KEY: "creem_runtime_integration",
-  CREEM_PRODUCT_ID: "prod_runtime_integration",
-  CREEM_WEBHOOK_SECRET: WEBHOOK_SECRET,
-  DATAFAST_API_KEY
-} as const;
 
 type CheckoutRequest = {
   metadata?: Record<string, unknown>;
@@ -106,7 +99,13 @@ function createRuntimeHarness(): RuntimeHarness {
     checkoutCreate,
     datafastFetch,
     getTransactionById,
-    server: createExampleExpressApp({ client }).listen(0, "127.0.0.1")
+    server: createExampleExpressApp({
+      checkoutConfig: {
+        appBaseUrl: "http://127.0.0.1:3000",
+        productId: "prod_runtime_integration"
+      },
+      client
+    }).listen(0, "127.0.0.1")
   };
 }
 
@@ -171,10 +170,6 @@ describe("example-express full runtime flow", () => {
   beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "info").mockImplementation(() => {});
-
-    for (const [key, value] of Object.entries(REQUIRED_ENV)) {
-      process.env[key] = value;
-    }
   });
 
   afterEach(async () => {
@@ -183,10 +178,6 @@ describe("example-express full runtime flow", () => {
     if (harness) {
       await stopServer(harness.server);
       harness = undefined;
-    }
-
-    for (const key of Object.keys(REQUIRED_ENV)) {
-      delete process.env[key];
     }
   });
 
@@ -267,5 +258,24 @@ describe("example-express full runtime flow", () => {
       timestamp: "2026-03-12T10:00:00.000Z",
       transaction_id: "txn_sub_123"
     });
+  });
+
+  it("rejects invalid webhook signatures through the real Express runtime path", async () => {
+    harness = createRuntimeHarness();
+    const port = await getListeningPort(harness.server);
+    const rawBody = JSON.stringify(checkoutCompletedFixture);
+
+    const response = await fetch(`http://127.0.0.1:${port}/api/webhook/creem`, {
+      body: rawBody,
+      headers: {
+        "content-type": "application/json",
+        "creem-signature": "bad_signature"
+      },
+      method: "POST"
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toBe("Invalid signature");
+    expect(harness.datafastFetch).not.toHaveBeenCalled();
   });
 });
