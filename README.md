@@ -176,7 +176,7 @@ const creemDataFast = createCreemDataFast({
   testMode: true
 });
 
-// Works with any framework: Hono, Fastify, Koa, Cloudflare Workers, etc.
+// Works with any Node.js framework: Hono, Fastify, Koa, etc.
 async function handleCreemWebhook(rawBody: string, headers: Record<string, string>) {
   try {
     const result = await creemDataFast.handleWebhook({ rawBody, headers });
