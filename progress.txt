@@ -35,6 +35,7 @@
 - Test tooling must also honor the package Node floor; if CI validates Node 18, keep `vitest` on a major that still supports Node 18.
 - Keep GitHub Actions core actions updated when GitHub deprecates their runner Node version, or CI will stay green but accumulate avoidable platform warnings.
 - Production webhook dedupe must use atomic `claim` / `complete` / `release` semantics; split `has` / `set` checks are race-prone under concurrent deliveries.
+- Internal fallback helpers must match the documented public defaults; if `createCreemDataFast()` defaults to `MemoryIdempotencyStore`, `handleWebhook()` should not silently resolve a noop store.
 
 ## 2026-03-12 18:45 - setup
 - Initialized the `creem-datafast` package from scratch with strict TypeScript, `tsup`, `vitest`, and a pnpm workspace for the example app.
@@ -416,4 +417,13 @@
 - Files changed: `package.json`, `progress.txt`
 - **Learnings for future iterations:**
   - When a repo adds a check-only formatting script, pair it immediately with the equivalent write-mode script so the contributor loop stays one command away from green.
+---
+## 2026-03-13 18:45 CET - amount-and-idempotency-clarity
+- Simplified `minorToMajor()` to direct ISO exponent normalization and added explicit currency coverage for `JPY`, `USD`, and `KWD`.
+- Removed the internal noop idempotency fallback by aligning `resolveIdempotencyStore()` with the public `MemoryIdempotencyStore` default, and added a regression asserting that fallback.
+- Reviewed `README.md` idempotency docs; no content change was needed because the public default was already documented correctly.
+- Files changed: `src/core/amount.ts`, `src/core/idempotency.ts`, `tests/unit/amount.test.ts`, `tests/unit/idempotency.test.ts`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - `minorToMajor()` should stay a pure exponent normalization step because Creem already provides integer minor units.
+  - Internal helpers that resolve optional dependencies should mirror the public factory defaults or reviewers will correctly suspect hidden behavior drift.
 ---

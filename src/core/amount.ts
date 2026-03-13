@@ -35,11 +35,6 @@ export function currencyExponent(currency: string): 0 | 2 | 3 {
 
 export function minorToMajor(amount: number, currency: string): number {
   const exponent = currencyExponent(currency);
-
-  if (exponent === 0) {
-    return amount;
-  }
-
-  const factor = 10 ** exponent;
-  return Math.round((amount / factor) * 1000) / 1000;
+  // Creem amounts arrive as integer minor units; normalize only by ISO currency exponent.
+  return amount / 10 ** exponent;
 }

@@ -7,20 +7,6 @@ type Entry = {
   status: EntryStatus;
 };
 
-class NoopIdempotencyStore implements IdempotencyStore {
-  async claim(): Promise<boolean> {
-    return true;
-  }
-
-  async complete(): Promise<void> {
-    return;
-  }
-
-  async release(): Promise<void> {
-    return;
-  }
-}
-
 export class MemoryIdempotencyStore implements IdempotencyStore {
   private readonly values = new Map<string, Entry>();
 
@@ -63,7 +49,7 @@ export class MemoryIdempotencyStore implements IdempotencyStore {
 }
 
 export function resolveIdempotencyStore(store?: IdempotencyStore): IdempotencyStore {
-  return store ?? new NoopIdempotencyStore();
+  return store ?? new MemoryIdempotencyStore();
 }
 
 export function getIdempotencyKey(eventId: string): string {

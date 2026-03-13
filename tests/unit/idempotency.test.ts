@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { MemoryIdempotencyStore } from "../../src/core/idempotency.js";
+import { MemoryIdempotencyStore, resolveIdempotencyStore } from "../../src/core/idempotency.js";
 
 describe("MemoryIdempotencyStore", () => {
   afterEach(() => {
@@ -44,5 +44,9 @@ describe("MemoryIdempotencyStore", () => {
     vi.advanceTimersByTime(1_001);
 
     await expect(store.claim("creem:event:evt_123", 1)).resolves.toBe(true);
+  });
+
+  it("uses the in-memory store as the internal default fallback", () => {
+    expect(resolveIdempotencyStore()).toBeInstanceOf(MemoryIdempotencyStore);
   });
 });

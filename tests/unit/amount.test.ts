@@ -1,12 +1,19 @@
 import { currencyExponent, minorToMajor } from "../../src/core/amount.js";
 
 describe("amount", () => {
-  it("converts 1000 EUR to 10", () => {
-    expect(minorToMajor(1000, "EUR")).toBe(10);
+  it("keeps zero-decimal currencies unchanged", () => {
+    expect(currencyExponent("JPY")).toBe(0);
+    expect(minorToMajor(1234, "JPY")).toBe(1234);
   });
 
-  it("converts 2999 USD to 29.99", () => {
+  it("converts two-decimal currencies", () => {
+    expect(currencyExponent("USD")).toBe(2);
     expect(minorToMajor(2999, "USD")).toBe(29.99);
+  });
+
+  it("converts three-decimal currencies", () => {
+    expect(currencyExponent("KWD")).toBe(3);
+    expect(minorToMajor(12345, "KWD")).toBe(12.345);
   });
 
   it("uses exponent 2 for unknown currencies", () => {
