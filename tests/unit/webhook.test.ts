@@ -235,13 +235,14 @@ describe("handleWebhook", () => {
   });
 
   it("deduplicates repeated deliveries through the public factory default store", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: {
-          "content-type": "application/json"
-        }
-      })
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: {
+            "content-type": "application/json"
+          }
+        })
     );
     const client = createCreemDataFast({
       creemClient: {

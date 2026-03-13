@@ -1,4 +1,5 @@
 ## Codebase Patterns
+- Keep runnable examples aligned on the full browser-script -> checkout -> webhook attribution story; if one example loads the DataFast script, the other should too, always with `data-disable-payments="true"`.
 - README/runtime compatibility claims for Bun and Workers should be scoped to the core smoke coverage with injected boundaries unless CI exercises a real third-party integration end-to-end.
 - Keep `@vitest/coverage-v8` on the same release line as `vitest`; the latest coverage package tracks Vitest 4 and breaks the repo's Node 18 compatibility claim.
 - For Biome v2 format-only validation, use `biome check` with all linters disabled because `biome format` does not provide a `--check` mode.
@@ -458,4 +459,12 @@
 - **Learnings for future iterations:**
   - Reviewer-facing README sections work best when they privilege one canonical runnable example and demote alternatives to a short fallback note.
   - If docs ask users to replay a signed webhook locally, reuse an existing tested fixture and show the signature-generation command inline so the path stays self-contained.
+---
+## 2026-03-13 19:05 CET - express-example-datafast-script-parity
+- Added optional DataFast landing-page script support to the runnable Express example so it now mirrors the Next example's browser-script -> checkout -> webhook attribution story, while keeping `data-disable-payments="true"` to avoid double-counting.
+- Added Express example coverage for landing-page script rendering with and without config, and refreshed the example/root docs plus `.env.example` to mention the browser script setup.
+- Files changed: `example-express/src/app.ts`, `example-express/src/creem-datafast.ts`, `tests/unit/example-express-app.test.ts`, `example-express/.env.example`, `example-express/README.md`, `README.md`, `AGENTS.md`, `progress.txt`, `tests/unit/webhook.test.ts`
+- **Learnings for future iterations:**
+  - Example-only browser script config should be read through an optional path so the landing page stays renderable even when checkout/webhook env vars are absent.
+  - Runnable examples are part of the product narrative, so parity regressions deserve direct HTML assertions, not just prose in the README.
 ---

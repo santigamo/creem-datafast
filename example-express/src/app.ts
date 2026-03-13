@@ -2,27 +2,39 @@ import express, { type Express } from "express";
 import { createExpressWebhookHandler } from "creem-datafast/express";
 import type { CreemDataFastClient } from "creem-datafast";
 
-import { getCreemDataFastClient, getExampleConfig } from "./creem-datafast.js";
+import {
+  getCreemDataFastClient,
+  getExampleConfig,
+  getOptionalExampleDataFastScriptConfig
+} from "./creem-datafast.js";
 
 type ExampleExpressCheckoutConfig = {
   appBaseUrl: string;
   productId: string;
 };
 
+type ExampleExpressDataFastScriptConfig = {
+  domain?: string;
+  websiteId: string;
+};
+
 type ExampleExpressAppOptions = {
   client?: CreemDataFastClient;
   checkoutConfig?: ExampleExpressCheckoutConfig;
+  dataFastScriptConfig?: ExampleExpressDataFastScriptConfig;
 };
 
 export function createExampleExpressApp(options: ExampleExpressAppOptions = {}): Express {
   const app = express();
   const client = options.client ?? getCreemDataFastClient();
   const checkoutConfig = options.checkoutConfig;
+  const dataFastScriptConfig =
+    options.dataFastScriptConfig ?? getOptionalExampleDataFastScriptConfig();
 
   app.disable("x-powered-by");
 
   app.get("/", (_req, res) => {
-    res.type("html").send(renderPage());
+    res.type("html").send(renderPage(dataFastScriptConfig));
   });
 
   app.post("/api/checkout", async (req, res, next) => {
@@ -80,13 +92,31 @@ function getExampleCheckoutConfig(): ExampleExpressCheckoutConfig {
   };
 }
 
-function renderPage(): string {
+function renderDataFastScript(config: ExampleExpressDataFastScriptConfig | undefined): string {
+  if (!config) {
+    return "";
+  }
+
+  const domainAttribute = config.domain ? ` data-domain="${config.domain}"` : "";
+
+  return `
+    <script
+      defer
+      src="https://datafa.st/js/script.js"
+      data-website-id="${config.websiteId}"${domainAttribute}
+      data-disable-payments="true"
+      data-allow-localhost="true"
+    ></script>`;
+}
+
+function renderPage(dataFastScriptConfig: ExampleExpressDataFastScriptConfig | undefined): string {
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>creem-datafast Express example</title>
+    ${renderDataFastScript(dataFastScriptConfig)}
     <style>
       :root {
         color-scheme: light;
@@ -190,10 +220,11 @@ function renderPage(): string {
     <main>
       <section class="hero">
         <p class="eyebrow">creem-datafast / express</p>
-        <h1>Server-side checkout. Raw-body webhook. Real adapter.</h1>
+        <h1>Browser tracking. Server checkout. Raw-body webhook.</h1>
         <p class="subtitle">
-          This example keeps the full flow tangible with plain Express: create a checkout on the
-          server, hand Creem the success URL, and verify the webhook through
+          This example keeps the full flow tangible with plain Express: the landing page can load
+          the DataFast browser script, <code>POST /api/checkout</code> creates the hosted Creem
+          checkout on the server, and the webhook is still verified through
           <code>express.raw({ type: "application/json" })</code>.
         </p>
         <div class="actions">
@@ -208,6 +239,7 @@ function renderPage(): string {
         <article class="panel">
           <h2>Flow</h2>
           <ol>
+            <li>The landing page loads the DataFast script when <code>DATAFAST_WEBSITE_ID</code> is configured, with browser-side payment capture disabled.</li>
             <li><code>POST /api/checkout</code> calls <code>createCheckout()</code> with request headers and URL context.</li>
             <li>Creem redirects the customer to the hosted checkout.</li>
             <li><code>POST /api/webhook/creem</code> validates the raw body and forwards the payment to DataFast.</li>
@@ -227,6 +259,7 @@ function renderPage(): string {
         <article class="panel">
           <h2>What to verify</h2>
           <ul>
+            <li>The landing page source includes the DataFast script when you set <code>DATAFAST_WEBSITE_ID</code>.</li>
             <li>Server logs show the DataFast payload in development.</li>
             <li>Webhook requests return <code>400</code> for invalid signatures, <code>500</code> for unexpected failures, and <code>200 OK</code> when delivery is accepted or intentionally ignored.</li>
             <li>The payment appears in DataFast with the transaction and attribution fields.</li>
@@ -273,8 +306,9 @@ function renderSuccessPage(): string {
       <p>checkout complete</p>
       <h1>Payment confirmed.</h1>
       <p>
-        Creem redirected the browser back to your app. The real signal still comes from the webhook:
-        check the Express logs for the forwarded DataFast payload and confirm the delivery hit
+        Creem redirected the browser back to your app. The browser script can identify the visitor
+        before checkout, but the payment attribution still comes from the webhook: check the
+        Express logs for the forwarded DataFast payload and confirm the delivery hit
         <code>/api/webhook/creem</code> successfully.
       </p>
       <a href="/">Back to landing</a>

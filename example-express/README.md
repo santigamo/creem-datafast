@@ -34,6 +34,7 @@ Open [http://localhost:3000](http://localhost:3000) and press the checkout butto
 
 ## What it shows
 
+- Optional landing-page DataFast browser script, including `data-disable-payments="true"` to avoid double-counting against webhook forwarding
 - Express checkout route calling `createCheckout(..., { request })`
 - Raw-body webhook verification via `express.raw({ type: "application/json" })`
 - `createExpressWebhookHandler()` wired as the real webhook adapter

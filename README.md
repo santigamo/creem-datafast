@@ -314,8 +314,8 @@ Example app only:
 - `CREEM_PRODUCT_ID`: product used by your checkout endpoint.
 - `APP_BASE_URL`: base URL for success redirects and local webhook setup.
 - `CREEM_TEST_MODE`: example-app env var that maps to the `testMode` constructor option. Set it to `true` to target `https://test-api.creem.io`.
-- `DATAFAST_WEBSITE_ID`: DataFast website ID (e.g. `dfid_xxx`) for the tracking script.
-- `DATAFAST_DOMAIN`: domain registered in your DataFast dashboard.
+- `DATAFAST_WEBSITE_ID`: DataFast website ID (e.g. `dfid_xxx`) for the optional tracking script in the runnable examples.
+- `DATAFAST_DOMAIN`: domain registered in your DataFast dashboard for the optional example tracking script.
 
 Optional constructor hardening:
 
@@ -421,7 +421,7 @@ pnpm --filter example-next dev
 
 Both examples consume the built workspace package from the repository root, so rerun `pnpm build` after changing library source before restarting or rebuilding either example.
 
-For `example-express`, open `http://localhost:3000` and use the landing page button to start a checkout. For `example-next`, open the same URL and try both landing-page flows: the same-origin server-cookie form post and the browser-helper button that appends tracking onto `POST /api/checkout`.
+For `example-express`, open `http://localhost:3000`, confirm the landing page loads the optional DataFast script when `DATAFAST_WEBSITE_ID` is set, and use the button to start a checkout. For `example-next`, open the same URL and try both landing-page flows: the same-origin server-cookie form post and the browser-helper button that appends tracking onto `POST /api/checkout`.
 
 Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/creem` through your tunnel of choice.
 
@@ -432,7 +432,7 @@ Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/
 3. Start the example with `pnpm --filter example-express dev` or `pnpm --filter example-next dev`.
 4. Expose `http://localhost:3000` through a tunnel such as `ngrok http 3000`.
 5. Set the Creem webhook endpoint to `https://<your-tunnel>/api/webhook/creem`.
-6. Open the example app, start a checkout, and complete a payment in Creem test mode. In `example-next`, verify both the same-origin server-cookie path and the browser-helper path.
+6. Open the example app, confirm the landing page script is present when `DATAFAST_WEBSITE_ID` is configured, start a checkout, and complete a payment in Creem test mode. In `example-next`, verify both the same-origin server-cookie path and the browser-helper path.
 7. Expect the example server logs to show the payload forwarded to DataFast; the Next example also logs processed versus ignored webhook outcomes explicitly.
 
 ## Troubleshooting

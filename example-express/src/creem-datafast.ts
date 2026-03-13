@@ -12,6 +12,8 @@ type ExampleConfig = {
   creemApiKey: string;
   creemWebhookSecret: string;
   datafastApiKey: string;
+  datafastDomain?: string;
+  datafastWebsiteId?: string;
   port: number;
   productId: string;
   testMode: boolean;
@@ -108,9 +110,25 @@ export function getExampleConfig(): ExampleConfig {
     creemApiKey: getRequiredEnv("CREEM_API_KEY"),
     creemWebhookSecret: getRequiredEnv("CREEM_WEBHOOK_SECRET"),
     datafastApiKey: getRequiredEnv("DATAFAST_API_KEY"),
+    datafastDomain: process.env.DATAFAST_DOMAIN,
+    datafastWebsiteId: process.env.DATAFAST_WEBSITE_ID,
     port: Number(process.env.PORT ?? "3000"),
     productId: getRequiredEnv("CREEM_PRODUCT_ID"),
     testMode: process.env.CREEM_TEST_MODE !== "false"
+  };
+}
+
+export function getOptionalExampleDataFastScriptConfig() {
+  loadLocalEnv();
+
+  const websiteId = process.env.DATAFAST_WEBSITE_ID;
+  if (!websiteId) {
+    return undefined;
+  }
+
+  return {
+    domain: process.env.DATAFAST_DOMAIN,
+    websiteId
   };
 }
 

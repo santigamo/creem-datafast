@@ -47,5 +47,6 @@
 - If the README documents a root-level import from `creem-datafast`, cover that symbol in the packaged smoke consumer so docs and published exports cannot drift silently.
 - Keep `datafast_session_id` capture limited to Creem metadata until DataFast documents payment API support for it; webhook payment payloads should continue forwarding only `datafast_visitor_id`.
 - If an example or integration uses the DataFast tracking script alongside server-side payment forwarding, set `data-disable-payments="true"` on the script tag or DataFast can record the same payment twice.
+- Keep the runnable Next.js and Express examples aligned on the full attribution narrative; if one example demonstrates the DataFast landing-page script, the other should too, with browser-side payment capture disabled.
 - Biome v2 does not expose `biome format --check`; use `biome check` with linters disabled for format-only validation and keep `pnpm lint` / `pnpm format:check` scoped to the authored source trees.
 - Amount normalization tests should include lowercase currency inputs because the implementation intentionally normalizes ISO codes with `toUpperCase()`.

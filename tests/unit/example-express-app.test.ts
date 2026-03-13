@@ -69,6 +69,45 @@ describe("example-express runtime app", () => {
     }
   });
 
+  it("renders the DataFast script on the landing page when configured", async () => {
+    const app = createExampleExpressApp({
+      client: createClient(),
+      dataFastScriptConfig: {
+        domain: "example.com",
+        websiteId: "dfid_test_123"
+      }
+    });
+
+    server = app.listen(0, "127.0.0.1");
+    const port = await getListeningPort(server);
+
+    const response = await fetch(`http://127.0.0.1:${port}/`);
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).toContain('src="https://datafa.st/js/script.js"');
+    expect(html).toContain('data-website-id="dfid_test_123"');
+    expect(html).toContain('data-domain="example.com"');
+    expect(html).toContain('data-disable-payments="true"');
+    expect(html).toContain('data-allow-localhost="true"');
+  });
+
+  it("does not render the DataFast script on the landing page without config", async () => {
+    const app = createExampleExpressApp({
+      client: createClient()
+    });
+
+    server = app.listen(0, "127.0.0.1");
+    const port = await getListeningPort(server);
+
+    const response = await fetch(`http://127.0.0.1:${port}/`);
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).not.toContain('src="https://datafa.st/js/script.js"');
+    expect(html).not.toContain("data-disable-payments");
+  });
+
   it("uses express.raw for webhook requests and returns 200 on success", async () => {
     const handleWebhook = vi.fn(
       async (): Promise<HandleWebhookResult> => ({
