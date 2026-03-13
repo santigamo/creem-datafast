@@ -385,3 +385,9 @@
   - A Node-only Web Crypto fallback inside published runtime code can contaminate worker bundles even when guarded at runtime, because worker tooling may still statically analyze the import path.
   - When a Node compatibility issue only appears inside the test runner, prefer a test-setup polyfill over widening the published runtime surface.
 ---
+## 2026-03-13 18:05 CET - example-express-webhook-contract-tests
+- Added missing runtime coverage for the `example-express` webhook contract so the example now explicitly proves `500 Internal error` on unexpected failures and `200 OK` when a delivery is intentionally ignored.
+- Files changed: `tests/unit/example-express-app.test.ts`, `progress.txt`
+- **Learnings for future iterations:**
+  - When example copy documents multiple HTTP outcomes, keep the example app tests aligned with every documented branch so contract drift is caught in the runnable example itself.
+---

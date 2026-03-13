@@ -137,6 +137,62 @@ describe("example-express runtime app", () => {
     expect(await response.text()).toBe("Invalid signature");
   });
 
+  it("returns 500 when the adapter sees an unexpected webhook error", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const app = createExampleExpressApp({
+      client: createClient({
+        handleWebhook: vi.fn(async () => {
+          throw new Error("DataFast failed");
+        })
+      })
+    });
+
+    server = app.listen(0, "127.0.0.1");
+    const port = await getListeningPort(server);
+
+    const response = await fetch(`http://127.0.0.1:${port}/api/webhook/creem`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "creem-signature": "sig_123"
+      },
+      body: "{}"
+    });
+
+    expect(response.status).toBe(500);
+    expect(await response.text()).toBe("Internal error");
+  });
+
+  it("returns 200 when the webhook is intentionally ignored", async () => {
+    const handleWebhook = vi.fn(async (): Promise<HandleWebhookResult> => ({
+      eventId: "evt_ignored",
+      eventType: "customer.updated",
+      ignored: true,
+      ok: true,
+      reason: "unsupported_event"
+    }));
+    const app = createExampleExpressApp({
+      client: createClient({ handleWebhook })
+    });
+
+    server = app.listen(0, "127.0.0.1");
+    const port = await getListeningPort(server);
+
+    const response = await fetch(`http://127.0.0.1:${port}/api/webhook/creem`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "creem-signature": "sig_123"
+      },
+      body: "{}"
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("OK");
+    expect(handleWebhook).toHaveBeenCalledTimes(1);
+  });
+
   it("uses injected checkout config so checkout requests do not require example env", async () => {
     const createCheckout = vi.fn(async () => ({
       checkoutId: "checkout_123",
