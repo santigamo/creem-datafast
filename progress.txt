@@ -1,4 +1,5 @@
 ## Codebase Patterns
+- Keep the root README focused on install/use/configure quickstart flow; move longer operational recipes with infrastructure snippets into `docs/` and link from the relevant README sections.
 - Treat Creem initial subscription `checkout.completed` deliveries as control-flow only; ignore them and let `subscription.paid` own payment attribution so the first recurring purchase is not forwarded twice.
 - Verify Creem webhooks against the raw body and keep adapters transport-only; Express integrations must use `express.raw({ type: "application/json" })`.
 - Keep tracking precedence explicit: `params.tracking` overrides metadata tracking keys, metadata tracking keys override `request.url` query params, query params override cookies, and only `datafast_visitor_id` / `datafast_session_id` are ever injected.
@@ -214,4 +215,10 @@
 - **Learnings for future iterations:**
   - Cross-origin checkout attribution only works automatically when the backend passes both headers and URL context into `createCheckout()`.
   - Parse request URLs with a fixed base so absolute `Request.url` values and relative Express `req.url` values share the same code path.
+---
+## 2026-03-13 13:45 CET - docs-production-idempotency
+- Moved the production idempotency recipe out of the root README into a dedicated doc, kept the README focused on quickstart flow, and linked the new doc from both the production idempotency section and troubleshooting.
+- Files changed: `README.md`, `docs/production-idempotency.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - Keep the root README focused on install/use/configure flow; move longer operational recipes with copy-paste infrastructure snippets into `docs/` and link them from the relevant entry points.
 ---

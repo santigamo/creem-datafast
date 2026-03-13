@@ -243,6 +243,12 @@ Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/
 6. Open the example app, start a checkout, and complete a payment in Creem test mode.
 7. Expect the example server logs to show the webhook result and the payload forwarded to DataFast.
 
+## Production Idempotency
+
+By default no idempotency store is configured, so duplicate webhook deliveries are forwarded to DataFast every time. For production, pass a durable store so deduplication survives process restarts and works across multiple instances.
+
+See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for a copy-paste Redis / Upstash recipe, TTL guidance, and how to wire it into `createCreemDataFast()`.
+
 ## Troubleshooting
 
 - Invalid webhook signature: make sure the handler reads the raw request body, not parsed JSON.
@@ -250,7 +256,7 @@ Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/
 - Missing visitor tracking: the checkout still works by default; enable `strictTracking` if you want the request to fail instead.
 - Wrong amount format: Creem amounts are interpreted as minor units and converted into decimal major units before sending to DataFast.
 - Refund semantics: `refund.created` forwards the refunded amount as a new DataFast payment with `refunded: true` and uses the Creem refund id as `transaction_id`.
-- Duplicate forwards: pass a real `idempotencyStore` in production if you need dedupe across processes.
+- Duplicate forwards: pass a real `idempotencyStore` in production if you need dedupe across processes. See [`docs/production-idempotency.md`](./docs/production-idempotency.md).
 - Slow or flaky DataFast responses: forwarding uses an `8000ms` timeout by default and retries only network errors, timeouts, and `408` / `429` / `5xx` responses.
 
 ## API Reference
