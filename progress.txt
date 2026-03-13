@@ -156,6 +156,12 @@
   - Hybrid integrations may need both `request` context and a manual `cookieHeader`; treat those cookie sources as complementary instead of mutually exclusive.
   - Keep checkout precedence tests focused on per-field behavior so partial tracking from different sources does not regress silently.
 ---
+## 2026-03-13 15:14 CET - checkout-partial-query-hybrid-regression
+- Added a checkout regression covering partial query-param tracking merged with hybrid cookie sources, ensuring `request.url` supplies `visitorId` while request cookies still win for `sessionId`.
+- Files changed: `tests/unit/checkout.test.ts`
+- **Learnings for future iterations:**
+  - Cross-layer precedence needs partial-field regressions, not only full-source winner tests, because tracking resolution is intentionally per-field.
+---
 ## 2026-03-12 22:12 - checkout-error-taxonomy
 - Corrected checkout response validation to throw `CreemDataFastError` instead of `MissingTrackingError` when the Creem SDK returns an invalid response, and added a regression test for that contract.
 - Files changed: `src/core/checkout.ts`, `tests/unit/checkout.test.ts`, `AGENTS.md`

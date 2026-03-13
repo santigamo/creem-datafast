@@ -177,6 +177,31 @@ describe("createCheckout", () => {
     });
   });
 
+  it("merges partial query params with hybrid cookie fallback", async () => {
+    const result = await createCheckout({
+      productId: "prod_123",
+      successUrl: "https://example.com/success"
+    }, {
+      cookieHeader: "datafast_session_id=session_fallback",
+      request: {
+        headers: {
+          cookie: "datafast_session_id=session_request"
+        },
+        url: "/api/checkout?datafast_visitor_id=visitor_query"
+      }
+    }, {
+      captureSessionId: true,
+      creem,
+      logger: noopLogger,
+      strictTracking: false
+    });
+
+    expect(result.injectedTracking).toEqual({
+      sessionId: "session_request",
+      visitorId: "visitor_query"
+    });
+  });
+
   it("prefers query params over cookies", async () => {
     const result = await createCheckout({
       productId: "prod_123",
