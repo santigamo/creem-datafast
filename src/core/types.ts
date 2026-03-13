@@ -131,7 +131,8 @@ export type IgnoredWebhookResult = {
   eventType?: string;
   reason:
     | "unsupported_event"
-    | "duplicate_event";
+    | "duplicate_event"
+    | "delegated_to_subscription_paid";
 };
 
 /**
@@ -260,13 +261,19 @@ export interface CheckoutCompletedOrder {
   id: string;
   amount: number;
   currency: string;
+  type?: string;
   metadata?: Record<string, unknown>;
+}
+
+export interface CheckoutCompletedSubscription {
+  id?: string;
 }
 
 export interface CheckoutCompletedObject {
   order?: CheckoutCompletedOrder;
   customer?: CheckoutCompletedCustomer | string;
   metadata?: Record<string, unknown>;
+  subscription?: CheckoutCompletedSubscription | string;
 }
 
 export interface CheckoutCompletedEvent {

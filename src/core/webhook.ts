@@ -36,6 +36,15 @@ function parseWebhookPayload(rawBody: string): Record<string, unknown> {
   return JSON.parse(rawBody) as Record<string, unknown>;
 }
 
+function isInitialSubscriptionCheckout(payload: CheckoutCompletedEvent): boolean {
+  const orderType = payload.object?.order?.type;
+  const subscription = payload.object?.subscription;
+
+  return orderType === "recurring"
+    || typeof subscription === "string"
+    || (typeof subscription === "object" && subscription !== null);
+}
+
 export async function handleWebhook(
   params: HandleWebhookParams,
   dependencies: WebhookHandlerDependencies
@@ -80,6 +89,19 @@ export async function handleWebhook(
       eventId,
       eventType,
       reason: "duplicate_event"
+    };
+  }
+
+  if (
+    eventType === "checkout.completed"
+    && isInitialSubscriptionCheckout(payload as CheckoutCompletedEvent)
+  ) {
+    return {
+      ok: true,
+      ignored: true,
+      eventId,
+      eventType,
+      reason: "delegated_to_subscription_paid"
     };
   }
 

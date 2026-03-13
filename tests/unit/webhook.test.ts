@@ -48,25 +48,37 @@ function createParams(payload: unknown) {
   };
 }
 
+function createDependencies(overrides?: {
+  datafast?: {
+    sendPayment?: ReturnType<typeof vi.fn>;
+  };
+  creem?: {
+    getTransactionById?: ReturnType<typeof vi.fn>;
+  };
+  idempotencyStore?: IdempotencyStore;
+}) {
+  return {
+    creem: {
+      createCheckout: vi.fn(),
+      getTransactionById: overrides?.creem?.getTransactionById ?? vi.fn()
+    },
+    creemWebhookSecret: webhookSecret,
+    datafast: {
+      sendPayment: overrides?.datafast?.sendPayment ?? vi.fn()
+    },
+    hydrateTransactionOnSubscriptionPaid: true,
+    idempotencyStore: overrides?.idempotencyStore ?? new TestMemoryIdempotencyStore(),
+    idempotencyTtlSeconds: 3600,
+    logger: noopLogger
+  };
+}
+
 describe("handleWebhook", () => {
   it("ignores unsupported events", async () => {
     const result = await handleWebhook(createParams({
       eventType: "customer.created",
       id: "evt_unsupported"
-    }), {
-      creem: {
-        createCheckout: vi.fn(),
-        getTransactionById: vi.fn()
-      },
-      creemWebhookSecret: webhookSecret,
-      datafast: {
-        sendPayment: vi.fn()
-      },
-      hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: new TestMemoryIdempotencyStore(),
-      idempotencyTtlSeconds: 3600,
-      logger: noopLogger
-    });
+    }), createDependencies());
 
     expect(result).toEqual({
       eventId: "evt_unsupported",
@@ -84,20 +96,9 @@ describe("handleWebhook", () => {
     const result = await handleWebhook(createParams({
       ...checkoutCompletedFixture,
       id: "evt_duplicate"
-    }), {
-      creem: {
-        createCheckout: vi.fn(),
-        getTransactionById: vi.fn()
-      },
-      creemWebhookSecret: webhookSecret,
-      datafast: {
-        sendPayment: vi.fn()
-      },
-      hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: store,
-      idempotencyTtlSeconds: 3600,
-      logger: noopLogger
-    });
+    }), createDependencies({
+      idempotencyStore: store
+    }));
 
     expect(result).toEqual({
       eventId: "evt_duplicate",
@@ -114,78 +115,89 @@ describe("handleWebhook", () => {
         "creem-signature": "bad"
       },
       rawBody: JSON.stringify(checkoutCompletedFixture)
-    }, {
-      creem: {
-        createCheckout: vi.fn(),
-        getTransactionById: vi.fn()
-      },
-      creemWebhookSecret: webhookSecret,
-      datafast: {
-        sendPayment: vi.fn()
-      },
-      hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: new TestMemoryIdempotencyStore(),
-      idempotencyTtlSeconds: 3600,
-      logger: noopLogger
-    })).rejects.toThrow(InvalidCreemSignatureError);
+    }, createDependencies())).rejects.toThrow(InvalidCreemSignatureError);
   });
 
   it("propagates DataFast failures", async () => {
+    const sendPayment = vi.fn(async () => {
+      throw new Error("DataFast failed");
+    });
+
     await expect(handleWebhook(createParams(checkoutCompletedFixture), {
-      creem: {
-        createCheckout: vi.fn(),
-        getTransactionById: vi.fn()
-      },
-      creemWebhookSecret: webhookSecret,
+      ...createDependencies(),
       datafast: {
-        sendPayment: vi.fn(async () => {
-          throw new Error("DataFast failed");
-        })
-      },
-      hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: new TestMemoryIdempotencyStore(),
-      idempotencyTtlSeconds: 3600,
-      logger: noopLogger
+        sendPayment
+      }
     })).rejects.toThrow("DataFast failed");
+  });
+
+  it("processes one-time checkout.completed events", async () => {
+    const sendPayment = vi.fn(async () => ({ ok: true }));
+
+    const result = await handleWebhook(createParams(checkoutCompletedFixture), createDependencies({
+      datafast: {
+        sendPayment
+      }
+    }));
+
+    expect(result.ignored).toBe(false);
+    expect(sendPayment).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores checkout.completed for an initial subscription purchase", async () => {
+    const sendPayment = vi.fn();
+
+    const result = await handleWebhook(createParams({
+      ...checkoutCompletedFixture,
+      object: {
+        ...checkoutCompletedFixture.object,
+        order: {
+          ...checkoutCompletedFixture.object.order,
+          type: "recurring"
+        },
+        subscription: {
+          id: "sub_123"
+        }
+      }
+    }), createDependencies({
+      datafast: {
+        sendPayment
+      }
+    }));
+
+    expect(result).toEqual({
+      eventId: "evt_checkout_completed_123",
+      eventType: "checkout.completed",
+      ignored: true,
+      ok: true,
+      reason: "delegated_to_subscription_paid"
+    });
+    expect(sendPayment).not.toHaveBeenCalled();
   });
 
   it("marks events as processed after a successful send", async () => {
     const store = new TestMemoryIdempotencyStore();
 
-    const result = await handleWebhook(createParams(checkoutCompletedFixture), {
-      creem: {
-        createCheckout: vi.fn(),
-        getTransactionById: vi.fn()
-      },
-      creemWebhookSecret: webhookSecret,
+    const result = await handleWebhook(createParams(checkoutCompletedFixture), createDependencies({
       datafast: {
         sendPayment: vi.fn(async () => ({ ok: true }))
       },
-      hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: store,
-      idempotencyTtlSeconds: 3600,
-      logger: noopLogger
-    });
+      idempotencyStore: store
+    }));
 
     expect(result.ignored).toBe(false);
     expect(await store.has("creem:event:evt_checkout_completed_123")).toBe(true);
   });
 
   it("hydrates subscription.paid transactions when available", async () => {
-    const result = await handleWebhook(createParams(subscriptionPaidFixture), {
+    const result = await handleWebhook(createParams(subscriptionPaidFixture), createDependencies({
       creem: {
-        createCheckout: vi.fn(),
         getTransactionById: vi.fn(async () => transactionFixture)
       },
-      creemWebhookSecret: webhookSecret,
       datafast: {
         sendPayment: vi.fn(async (payload) => payload)
-      },
-      hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: new TestMemoryIdempotencyStore(),
-      idempotencyTtlSeconds: 3600,
-      logger: noopLogger
-    });
+      }
+    }));
 
     if (result.ignored) {
       throw new Error("Expected subscription.paid to be processed.");
@@ -205,20 +217,11 @@ describe("handleWebhook", () => {
   });
 
   it("processes refund.created as a refunded DataFast payment", async () => {
-    const result = await handleWebhook(createParams(refundCreatedFixture), {
-      creem: {
-        createCheckout: vi.fn(),
-        getTransactionById: vi.fn()
-      },
-      creemWebhookSecret: webhookSecret,
+    const result = await handleWebhook(createParams(refundCreatedFixture), createDependencies({
       datafast: {
         sendPayment: vi.fn(async (payload) => payload)
-      },
-      hydrateTransactionOnSubscriptionPaid: true,
-      idempotencyStore: new TestMemoryIdempotencyStore(),
-      idempotencyTtlSeconds: 3600,
-      logger: noopLogger
-    });
+      }
+    }));
 
     if (result.ignored) {
       throw new Error("Expected refund.created to be processed.");

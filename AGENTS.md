@@ -7,6 +7,7 @@
 - Reserve `MissingTrackingError` for strict tracking failures; invalid Creem SDK responses should throw the generic `CreemDataFastError`.
 - Map `refund.created` into a new DataFast payment with `refunded: true` and use the Creem refund id as `transaction_id`; do not reuse the original transaction id.
 - `subscription.paid` should prefer hydrated transaction data from `last_transaction_id` and only fall back to `product.price` / `product.currency` if hydration fails.
+- Ignore `checkout.completed` when it clearly represents an initial subscription purchase (`order.type === "recurring"` or `object.subscription` present); let `subscription.paid` own payment attribution for that first charge.
 - Creem webhook payloads may send `object.customer` either as a hydrated object or as a string id; mapping code must preserve `customer_id` in both shapes.
 - The default idempotency behavior is intentionally minimal; production consumers should pass a real `idempotencyStore` if they need dedupe across processes.
 - Keep the root package export surface framework-agnostic and minimal; adapter/browser runtime APIs and their types belong on subpath entrypoints.

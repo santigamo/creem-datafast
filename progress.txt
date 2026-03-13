@@ -1,4 +1,5 @@
 ## Codebase Patterns
+- Treat Creem initial subscription `checkout.completed` deliveries as control-flow only; ignore them and let `subscription.paid` own payment attribution so the first recurring purchase is not forwarded twice.
 - Verify Creem webhooks against the raw body and keep adapters transport-only; Express integrations must use `express.raw({ type: "application/json" })`.
 - Keep tracking precedence explicit: `params.tracking` overrides metadata tracking keys, metadata tracking keys override cookies, and only `datafast_visitor_id` / `datafast_session_id` are ever injected.
 - Map `refund.created` to a fresh DataFast payment with `refunded: true` and use the Creem refund id as `transaction_id` so partial/full refunds keep unique event identities.
@@ -196,4 +197,12 @@
 - **Learnings for future iterations:**
   - If a custom error is part of the supported debugging contract, export it from the root package so consumer code can use `instanceof` safely.
   - Retry logs should describe both the current attempt and the next attempt so production traces explain why one extra outbound call happened.
+---
+## 2026-03-13 13:30 CET - subscription-checkout-dedupe
+- Ignored recurring `checkout.completed` deliveries when they represent the initial subscription purchase, using Creem's documented `order.type` / `object.subscription` signals so only `subscription.paid` forwards the first subscription charge to DataFast.
+- Added webhook regressions covering one-time checkout processing, recurring checkout ignore behavior, and unchanged `subscription.paid` handling; documented the new webhook rule in the README and agent notes.
+- Files changed: `src/core/webhook.ts`, `src/core/types.ts`, `tests/unit/webhook.test.ts`, `README.md`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Creem emits both `checkout.completed` and `subscription.paid` for the first subscription charge, but they are not two payment events and must not both be forwarded to DataFast.
+  - Event-id idempotency is not enough for cross-event attribution bugs; protect these cases with explicit webhook control-flow guards when upstream semantics split provisioning and billing.
 ---

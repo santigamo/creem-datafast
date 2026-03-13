@@ -33,6 +33,7 @@ Connecting Creem payments to DataFast requires capturing visitor cookies at chec
 - `subscription.paid`
 - `refund.created`
 - Any other Creem event is ignored and returns `200 OK` so unsupported deliveries do not trigger unnecessary retries.
+- Initial subscription `checkout.completed` deliveries are acknowledged but ignored so the first subscription payment is attributed only once through `subscription.paid`.
 
 ## Installation
 
