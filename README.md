@@ -158,22 +158,31 @@ Tracking precedence during checkout creation is:
 
 ### Custom webhook response logic (Next.js)
 
-If you need custom response logic in Next.js, use `handleWebhookRequest()` instead of `createNextWebhookHandler()`. It reads the raw body for you and forwards the webhook through the same core path. Note that it consumes the request body stream.
+If you need custom response logic in Next.js, use `handleWebhookRequest()` instead of `createNextWebhookHandler()`. It reads the raw body for you and forwards the webhook through the same core path. Note that it consumes the request body stream. Since `handleWebhookRequest()` is a low-level helper, you are responsible for catching `InvalidCreemSignatureError` (→ 400) and unexpected errors (→ 500).
 
 ```ts
 import { handleWebhookRequest } from "creem-datafast/next";
+import { InvalidCreemSignatureError } from "creem-datafast";
 import { creemDataFast } from "@/lib/creem-datafast";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const result = await handleWebhookRequest(creemDataFast, request);
+  try {
+    const result = await handleWebhookRequest(creemDataFast, request);
 
-  if (result.ignored) {
-    return new Response("Ignored", { status: 200 });
+    if (result.ignored) {
+      return new Response("Ignored", { status: 200 });
+    }
+
+    return new Response("OK", { status: 200 });
+  } catch (error) {
+    if (error instanceof InvalidCreemSignatureError) {
+      return new Response("Invalid signature", { status: 400 });
+    }
+
+    return new Response("Internal error", { status: 500 });
   }
-
-  return new Response("OK", { status: 200 });
 }
 ```
 

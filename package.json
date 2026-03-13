@@ -1,7 +1,7 @@
 {
   "name": "creem-datafast",
   "version": "0.1.0",
-  "description": "Creem to DataFast bridge for checkout tracking and webhook forwarding.",
+  "description": "Official Creem SDK wrapper that captures DataFast visitor attribution at checkout and forwards verified payment and refund webhooks — with built-in Next.js and Express adapters.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -39,14 +39,19 @@
   "bugs": {
     "url": "https://github.com/santigamo/creem-datafast/issues"
   },
+  "author": "Santiago Garcia Moreno",
   "keywords": [
     "creem",
     "datafast",
+    "payments",
+    "webhooks",
+    "checkout",
+    "attribution",
     "nextjs",
     "express",
-    "webhooks",
-    "payments",
-    "analytics"
+    "analytics",
+    "subscriptions",
+    "refunds"
   ],
   "engines": {
     "node": ">=18"
