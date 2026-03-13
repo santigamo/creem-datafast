@@ -4,11 +4,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 
-Wraps the official `creem` Core SDK and forwards the payment events you care about to DataFast. It gives you a framework-agnostic core, automatically captures DataFast tracking cookies during checkout creation, and ships with Next.js and Express adapters included.
+Connect Creem payments to DataFast analytics without writing any glue code. One factory, automatic cookie capture, webhook forwarding.
+
+- **Zero glue code** — one factory call wires up checkout attribution and webhook forwarding
+- **Framework adapters** — Next.js App Router and Express 5 out of the box, or bring your own
+- **Production-ready** — idempotent webhooks, retries with backoff, timing-safe signature verification
+- **Refund support** — forwards `refund.created` as `refunded: true` payment events
+- **Currency-aware** — correctly converts zero-decimal (JPY) and three-decimal (KWD) currencies
 
 ## What It Does
 
-`creem-datafast` focuses on four jobs:
+`creem-datafast` wraps the official `creem` Core SDK to handle four jobs:
 
 - Create Creem checkouts with automatic DataFast visitor attribution.
 - Read `datafast_visitor_id` and `datafast_session_id` from the request and inject them into Creem checkout metadata.
