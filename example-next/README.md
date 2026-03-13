@@ -35,6 +35,6 @@ Open [http://localhost:3000](http://localhost:3000) and press the checkout butto
 - DataFast tracking script injecting `datafast_visitor_id` cookies
 - Server-side checkout creation with `createCreemDataFast()`
 - Automatic cookie capture through `createCheckout(..., { request })`
-- Custom webhook handling with `handleWebhookRequest()`
+- Full custom webhook handling with `handleWebhookRequest()`, including low-level error mapping
 - Branching on `result.ignored` before returning the final response
 - Development-time logging of the payload forwarded to DataFast

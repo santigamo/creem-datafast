@@ -1,6 +1,7 @@
 ## Codebase Patterns
 - Keep the root README focused on install/use/configure quickstart flow; move longer operational recipes with infrastructure snippets into `docs/` and link from the relevant README sections.
 - Packaged consumer smoke coverage should include every README-documented root import so published exports and docs cannot drift apart silently.
+- Runnable examples that use low-level helpers should model the documented error mapping contract, not just the success path.
 - Keep `datafast_session_id` capture limited to Creem metadata until DataFast documents payment API support for it; webhook payment payloads should forward only `datafast_visitor_id`.
 - Treat Creem initial subscription `checkout.completed` deliveries as control-flow only; ignore them and let `subscription.paid` own payment attribution so the first recurring purchase is not forwarded twice.
 - Verify Creem webhooks against the raw body and keep adapters transport-only; Express integrations must use `express.raw({ type: "application/json" })`.
@@ -128,6 +129,15 @@
 - **Learnings for future iterations:**
   - If the package promises `node >=18`, CI should exercise at least Node 18 and the current primary version so compatibility claims stay credible.
   - Public helpers that mix boolean results with exceptional malformed-input cases need that contract stated in both JSDoc and README, not only in tests.
+---
+## 2026-03-13 14:48 - next-example-webhook-error-handling
+- Fixed the runnable Next.js webhook example so `handleWebhookRequest()` now maps `InvalidCreemSignatureError` to `400`, unexpected failures to `500`, and keeps the existing ignored/processed success branches.
+- Added a regression test that imports the real example route and asserts the custom-flow HTTP responses for invalid signature, unexpected error, and ignored webhook cases.
+- Clarified the example README so it explicitly says the custom webhook example includes low-level error mapping.
+- Files changed: `example-next/app/api/webhook/creem/route.ts`, `example-next/README.md`, `tests/unit/example-next-webhook-route.test.ts`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - When a runnable example adopts a low-level helper, keep its HTTP error mapping aligned with the README contract or the example will teach the wrong integration shape.
+  - Route-level regression tests can import workspace example files directly if env-gated module setup is satisfied with placeholder variables and the helper boundary is mocked.
 ---
 ## 2026-03-12 22:12 - checkout-error-taxonomy
 - Corrected checkout response validation to throw `CreemDataFastError` instead of `MissingTrackingError` when the Creem SDK returns an invalid response, and added a regression test for that contract.

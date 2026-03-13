@@ -15,6 +15,7 @@
 - Runtime error classes that consumers are expected to branch on with `instanceof` should be exported from the root package.
 - The published package is ESM-only; keep README compatibility notes and package exports aligned so consumers do not assume `require()` support.
 - For Next.js custom webhook responses, prefer `handleWebhookRequest()` from `creem-datafast/next`; it shares the adapter path and consumes the `Request` body stream once.
+- Runnable examples that use low-level helpers must demonstrate the required error mapping contract, not only the success path.
 - Creem SDK transaction hydration uses numeric `createdAt` / `created_at` timestamps in milliseconds; fixtures should match that format so hydration tests catch unit mistakes.
 - DataFast forwarding should use explicit timeouts and bounded retries in `src/core/datafast-client.ts`; retry only network errors, timeout aborts, and HTTP `408` / `429` / `5xx`, never broad `4xx`.
 - If `package.json` claims Node compatibility through `engines`, the GitHub Actions matrix should exercise the minimum supported Node version plus the primary current version.
