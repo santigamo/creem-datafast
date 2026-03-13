@@ -17,6 +17,7 @@
   },
   "include": [
     "src/**/*.ts",
+    "tests/integration/**/*.ts",
     "tests/unit/**/*.ts",
     "tests/fixtures/**/*.json",
     "vitest.config.ts",

@@ -37,5 +37,6 @@ Open [http://localhost:3000](http://localhost:3000) and press the checkout butto
 - Express checkout route calling `createCheckout(..., { request })`
 - Raw-body webhook verification via `express.raw({ type: "application/json" })`
 - `createExpressWebhookHandler()` wired as the real webhook adapter
+- Repository integration coverage that boots this app over local HTTP with stubbed Creem and DataFast edges
 - Development-time logging of the payload forwarded to DataFast
 - Minimal success page so the redirect target is visible end to end

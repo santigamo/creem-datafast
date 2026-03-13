@@ -25,6 +25,7 @@
 - `example-next` should consume the root workspace package through its published `exports`, not `../src/*`; rebuild the root package before running the example after library changes.
 - Lightweight adapter demos should stay as small workspace apps: prefer `tsx` plus a tiny local `.env.local` loader over adding bundlers or `dotenv` when the example only needs to prove the integration shape.
 - Runnable server examples should keep `listen()` in a tiny entry file and export a reusable app factory so runtime integration tests can mount the real routes without side effects at import time.
+- Runtime integration tests for runnable examples should inject a real `createCreemDataFast()` client and fake only external edges (`creemClient`, outbound DataFast `fetch`) so route wiring, raw-body handling, signatures, and mapping stay real.
 - If the package claims `node >=18`, keep the test runner on a Node-18-compatible major; `vitest` 4 requires Node 20+ and breaks the minimum-version CI job.
 - When `next build` updates `example-next/tsconfig.json` or `example-next/next-env.d.ts` with mandatory Next.js TypeScript settings, keep those generated changes so future builds stay clean.
 - Example-app CI may use placeholder env vars strictly to prove the app typechecks/builds; keep that documented so nobody reads the example job as a live integration check.

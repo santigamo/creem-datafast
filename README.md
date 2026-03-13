@@ -293,8 +293,15 @@ GitHub Actions validates the root package and workspace examples like this:
 - `package` also typechecks `example-express` on Node 18 after building the root package, so the lightweight Express example stays compatible without needing a separate job.
 - `example-next` runs on Node 20.9+ because Next.js 16 requires it, builds the root package first, then checks `typecheck` plus `build`.
 - The `example-next` CI job uses placeholder env values so it validates compilation of the workspace package integration only; it does not call real Creem or DataFast services.
+- `pnpm test` now includes an automated integration test that boots the real `example-express` app over HTTP and covers the full server-side attribution flow with stubbed Creem/DataFast edges.
 
 `pnpm smoke:consumer` packs the real `.tgz`, installs it into an isolated TypeScript consumer fixture, runs `tsc --noEmit`, and verifies the root plus `next`, `express`, and `client` subpath imports at runtime.
+
+Automated integration coverage:
+
+- Runs against the real `example-express` runtime app over local HTTP.
+- Covers checkout creation, tracking injection, webhook signature verification, event mapping, and DataFast forwarding.
+- Stubs only the external Creem SDK calls and outbound DataFast request, so this remains an integration test rather than a browser E2E.
 
 Runnable examples:
 
@@ -316,7 +323,7 @@ For `example-express`, open `http://localhost:3000` and use the landing page but
 
 Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/creem` through your tunnel of choice.
 
-### Verified Local Flow
+### Manual Local Verification
 
 1. Copy either `example-express/.env.example` or `example-next/.env.example` into the matching `.env.local` file and fill in real Creem and DataFast test credentials.
 2. Run `pnpm build` at the repository root so `dist/` reflects your current library changes.

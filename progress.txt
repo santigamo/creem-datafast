@@ -1,5 +1,6 @@
 ## Codebase Patterns
 - Injectable third-party clients should expose a small public interface instead of `unknown`, and that type should stay aligned with the runtime validator.
+- Runtime integration coverage for runnable examples should boot the real app and inject a real `createCreemDataFast()` client while faking only the external Creem/DataFast edges.
 - Keep the root README focused on install/use/configure quickstart flow; move longer operational recipes with infrastructure snippets into `docs/` and link from the relevant README sections.
 - Packaged consumer smoke coverage should include every README-documented root import so published exports and docs cannot drift apart silently.
 - Runnable examples that use low-level helpers should model the documented error mapping contract, not just the success path.
@@ -319,4 +320,12 @@
 - **Learnings for future iterations:**
   - If a custom SDK can be injected through public options, the option type should expose the minimal supported contract instead of `unknown` so consumers keep autocomplete and early validation.
   - Type-export smoke coverage is useful for public option contracts because runtime tests alone cannot catch a degraded TypeScript experience.
+---
+## 2026-03-13 17:08 CET - example-express-full-server-flow
+- Added a runtime integration suite that boots the real `example-express` app over local HTTP, drives checkout creation plus signed webhook delivery, and verifies the forwarded DataFast payload for both `checkout.completed` and hydrated `subscription.paid`.
+- Expanded Vitest and TypeScript config so integration tests run with the normal repo validation, and updated the READMEs to describe the automated server-side attribution coverage separately from manual local verification.
+- Files changed: `tests/integration/example-express-full-flow.test.ts`, `vitest.config.ts`, `tsconfig.json`, `README.md`, `example-express/README.md`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - `example-express` still calls `getExampleConfig()` inside the checkout route even when a custom client is injected, so runtime integration tests need placeholder env vars as well as fake external clients.
+  - The strongest low-cost integration signal for runnable examples is real local HTTP plus a real package client, with only the upstream SDK and outbound network calls stubbed.
 ---
