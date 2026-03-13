@@ -41,6 +41,7 @@
 - Keep GitHub Actions JavaScript actions on majors that support the current runner runtime; `actions/checkout@v5` and `actions/setup-node@v5` avoid the Node 20 deprecation warning.
 - Cloudflare Worker smoke coverage should bundle the built package first and run that bundle in Miniflare/workerd with `modulesRoot` pointed at the temp bundle directory; direct `dist/` execution can fail on npm resolution and worker path normalization before the package code runs.
 - Optional provider helpers can still be smoke-tested in Bun and Cloudflare Worker flows by passing structural fakes into the public factory instead of requiring real credentials or live infra.
+- README/runtime compatibility claims for Bun and Workers should be scoped to the core smoke coverage with injected boundaries unless CI exercises a real third-party integration end-to-end.
 - The root `SKILL.md` is consumer-facing documentation for AI coding agents; keep it aligned with the README quickstarts and the supported Next.js / Express integration patterns.
 - Distribution regressions are easiest to catch by installing the packed `.tgz` into an isolated consumer fixture; keep `pnpm smoke:consumer` aligned with the published exports and subpaths.
 - If the README documents a root-level import from `creem-datafast`, cover that symbol in the packaged smoke consumer so docs and published exports cannot drift silently.

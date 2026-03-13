@@ -1,4 +1,5 @@
 ## Codebase Patterns
+- README/runtime compatibility claims for Bun and Workers should be scoped to the core smoke coverage with injected boundaries unless CI exercises a real third-party integration end-to-end.
 - Keep `@vitest/coverage-v8` on the same release line as `vitest`; the latest coverage package tracks Vitest 4 and breaks the repo's Node 18 compatibility claim.
 - For Biome v2 format-only validation, use `biome check` with all linters disabled because `biome format` does not provide a `--check` mode.
 - Cloudflare Worker smoke coverage should bundle the built package first and run that bundle in Miniflare/workerd with `modulesRoot` set to the temp bundle dir; direct execution from `dist/` can fail before the package code runs.
@@ -434,4 +435,12 @@
 - **Learnings for future iterations:**
   - If docs promise a public default, cover it through the public factory path instead of relying only on unit tests around the lower-level resolver.
   - When an old `progress.txt` note becomes obsolete, append a correcting entry instead of rewriting history.
+---
+## 2026-03-13 18:52 CET - readme-compat-amount-coverage
+- Narrowed the README Worker/Bun compatibility wording so it explicitly matches the CI smoke scope: core portability with injected transport/client boundaries rather than a live third-party SDK integration.
+- Expanded the amount normalization unit suite with explicit zero-, two-, and three-decimal currency coverage across tiny and large amounts, plus unknown-currency fallback assertions.
+- Files changed: `README.md`, `tests/unit/amount.test.ts`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - Compatibility copy should not promise more than the exact CI signal; if a smoke test uses injected boundaries, say so in the docs.
+  - Payment amount suites should cover tiny and large samples for each supported exponent bucket so currency normalization confidence is obvious to reviewers.
 ---

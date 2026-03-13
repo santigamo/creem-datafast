@@ -72,7 +72,7 @@ Internally the package wraps the official `creem` Core SDK, so you do not need t
 ## Compatibility
 
 - Library runtime: Node 18+
-- Framework-agnostic core is smoke-validated on Cloudflare Workers and Bun
+- Framework-agnostic core is smoke-validated on Cloudflare Workers and Bun with injected transport/client boundaries
 - `example-express`: Node 18+ because it uses plain Express
 - `example-next`: Node 20.9+ because it uses Next.js 16
 - ESM-only package. Import with `import`, not `require()`.
@@ -179,7 +179,7 @@ const creemDataFast = createCreemDataFast({
   testMode: true
 });
 
-// Works with any Node.js framework, and the core flow is smoke-validated on Cloudflare Workers.
+// Works with any Node.js framework, and the core flow is smoke-validated on Cloudflare Workers with injected Creem/DataFast boundaries.
 async function handleCreemWebhook(rawBody: string, headers: Record<string, string>) {
   try {
     const result = await creemDataFast.handleWebhook({ rawBody, headers });
@@ -339,8 +339,8 @@ GitHub Actions validates the root package and workspace examples like this:
 - `package` runs on Node 18 and 20 and checks `build`, `lint`, `typecheck`, and `smoke:consumer`.
 - `package` runs plain `pnpm test` on Node 18 and `pnpm test:coverage` on Node 20, so CI keeps the minimum-runtime signal while also printing a readable coverage summary in logs.
 - `package` also typechecks `example-express` on Node 18 after building the root package, so the lightweight Express example stays compatible without needing a separate job.
-- `cloudflare-workers-smoke` runs the built root package inside workerd via a bundled Cloudflare Worker smoke.
-- `bun-smoke` packs the real tarball, installs it into an isolated Bun fixture, and exercises the async signature + webhook core flow.
+- `cloudflare-workers-smoke` runs the built root package inside workerd via a bundled Cloudflare Worker smoke with injected Creem/DataFast boundaries.
+- `bun-smoke` packs the real tarball, installs it into an isolated Bun fixture, and exercises the async signature + webhook core flow with injected external boundaries.
 - `example-next` runs on Node 20.9+ because Next.js 16 requires it, builds the root package first, then checks `typecheck` plus `build`.
 - The `example-next` CI job uses placeholder env values so it validates compilation of the workspace package integration only; it does not call real Creem or DataFast services.
 - `pnpm test` now includes an automated integration test that boots the real `example-express` app over HTTP and covers the full server-side attribution flow with stubbed Creem/DataFast edges.
