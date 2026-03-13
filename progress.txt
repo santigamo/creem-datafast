@@ -139,6 +139,14 @@
   - When a runnable example adopts a low-level helper, keep its HTTP error mapping aligned with the README contract or the example will teach the wrong integration shape.
   - Route-level regression tests can import workspace example files directly if env-gated module setup is satisfied with placeholder variables and the helper boundary is mocked.
 ---
+## 2026-03-13 14:52 - next-example-webhook-followups
+- Tightened the example route's unexpected-error logging to emit a small structured metadata object instead of the raw thrown value.
+- Renamed the route regression suite so its purpose is explicit: guarding the runnable example against drift from the documented low-level webhook contract.
+- Files changed: `example-next/app/api/webhook/creem/route.ts`, `tests/unit/example-next-webhook-route.test.ts`
+- **Learnings for future iterations:**
+  - Example-app logs are more useful as teaching material when unexpected failures log stable fields like error name and message instead of raw thrown objects.
+  - Regression suite names should describe the contract they are protecting, especially when the goal is to prevent docs/examples drift.
+---
 ## 2026-03-12 22:12 - checkout-error-taxonomy
 - Corrected checkout response validation to throw `CreemDataFastError` instead of `MissingTrackingError` when the Creem SDK returns an invalid response, and added a regression test for that contract.
 - Files changed: `src/core/checkout.ts`, `tests/unit/checkout.test.ts`, `AGENTS.md`

@@ -15,7 +15,7 @@ async function loadRoute() {
   return import("../../example-next/app/api/webhook/creem/route");
 }
 
-describe("example-next webhook route", () => {
+describe("example-next custom webhook docs contract", () => {
   beforeEach(() => {
     vi.resetModules();
     mockHandleWebhookRequest.mockReset();
@@ -60,6 +60,10 @@ describe("example-next webhook route", () => {
 
     expect(response.status).toBe(500);
     expect(await response.text()).toBe("Internal error");
+    expect(console.error).toHaveBeenCalledWith("[example-next] webhook failed", {
+      errorName: "Error",
+      message: "DataFast failed"
+    });
   });
 
   it("returns 200 ignored when the low-level helper yields an ignored webhook", async () => {

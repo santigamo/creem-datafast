@@ -7,6 +7,17 @@ export const runtime = "nodejs";
 
 const client = getCreemDataFastClient();
 
+function getUnexpectedErrorMeta(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      errorName: error.name,
+      message: error.message
+    };
+  }
+
+  return { error };
+}
+
 export async function POST(request: Request) {
   try {
     const result = await handleWebhookRequest(client, request);
@@ -33,7 +44,7 @@ export async function POST(request: Request) {
       return new Response("Invalid signature", { status: 400 });
     }
 
-    console.error("[example-next] webhook failed", error);
+    console.error("[example-next] webhook failed", getUnexpectedErrorMeta(error));
     return new Response("Internal error", { status: 500 });
   }
 }
