@@ -17,13 +17,20 @@ function hasExplicitTracking(tracking?: DataFastTracking): boolean {
 function resolveTracking(
   explicit: DataFastTracking | undefined,
   metadataTracking: DataFastTracking,
+  queryTracking: DataFastTracking,
   cookieTracking: DataFastTracking,
   captureSessionId: boolean
 ): DataFastTracking {
   return {
-    visitorId: explicit?.visitorId ?? metadataTracking.visitorId ?? cookieTracking.visitorId,
+    visitorId: explicit?.visitorId
+      ?? metadataTracking.visitorId
+      ?? queryTracking.visitorId
+      ?? cookieTracking.visitorId,
     sessionId: captureSessionId
-      ? explicit?.sessionId ?? metadataTracking.sessionId ?? cookieTracking.sessionId
+      ? explicit?.sessionId
+        ?? metadataTracking.sessionId
+        ?? queryTracking.sessionId
+        ?? cookieTracking.sessionId
       : undefined
   };
 }
@@ -36,6 +43,23 @@ function resolveCookieHeader(context?: CreateCheckoutContext): string | undefine
   return context?.cookieHeader;
 }
 
+function readTrackingFromRequestUrl(request?: CreateCheckoutContext["request"]): DataFastTracking {
+  const requestUrl = request?.url;
+  if (!requestUrl) {
+    return {};
+  }
+
+  try {
+    const url = new URL(requestUrl, "http://localhost");
+    return {
+      visitorId: url.searchParams.get("datafast_visitor_id") ?? undefined,
+      sessionId: url.searchParams.get("datafast_session_id") ?? undefined
+    };
+  } catch {
+    return {};
+  }
+}
+
 export async function createCheckout(
   params: CreateCheckoutParams,
   context: CreateCheckoutContext | undefined,
@@ -44,9 +68,11 @@ export async function createCheckout(
   const cookieHeader = resolveCookieHeader(context);
   const cookieTracking = readTrackingFromCookieHeader(cookieHeader);
   const metadataTracking = readTrackingFromMetadata(params.metadata);
+  const queryTracking = readTrackingFromRequestUrl(context?.request);
   const tracking = resolveTracking(
     params.tracking,
     metadataTracking,
+    queryTracking,
     cookieTracking,
     dependencies.captureSessionId
   );

@@ -61,6 +61,82 @@ describe("createCheckout", () => {
     expect(result.injectedTracking.visitorId).toBe("visitor_cookie");
   });
 
+  it("uses query params from request.url when cookies are missing", async () => {
+    const result = await createCheckout({
+      productId: "prod_123",
+      successUrl: "https://example.com/success"
+    }, {
+      request: {
+        headers: {},
+        url: "https://example.com/api/checkout?datafast_visitor_id=visitor_query&datafast_session_id=session_query"
+      }
+    }, {
+      captureSessionId: true,
+      creem,
+      logger: noopLogger,
+      strictTracking: false
+    });
+
+    expect(result.injectedTracking).toEqual({
+      sessionId: "session_query",
+      visitorId: "visitor_query"
+    });
+  });
+
+  it("prefers query params over cookies", async () => {
+    const result = await createCheckout({
+      productId: "prod_123",
+      successUrl: "https://example.com/success"
+    }, {
+      request: {
+        headers: {
+          cookie: "datafast_visitor_id=visitor_cookie; datafast_session_id=session_cookie"
+        },
+        url: "/api/checkout?datafast_visitor_id=visitor_query&datafast_session_id=session_query"
+      }
+    }, {
+      captureSessionId: true,
+      creem,
+      logger: noopLogger,
+      strictTracking: false
+    });
+
+    expect(result.injectedTracking).toEqual({
+      sessionId: "session_query",
+      visitorId: "visitor_query"
+    });
+  });
+
+  it("keeps metadata above query params", async () => {
+    const result = await createCheckout({
+      metadata: {
+        datafast_session_id: "session_metadata",
+        datafast_visitor_id: "visitor_metadata"
+      },
+      productId: "prod_123",
+      successUrl: "https://example.com/success"
+    }, {
+      request: {
+        headers: {},
+        url: "/api/checkout?datafast_visitor_id=visitor_query&datafast_session_id=session_query"
+      }
+    }, {
+      captureSessionId: true,
+      creem,
+      logger: noopLogger,
+      strictTracking: false
+    });
+
+    expect(result.injectedTracking).toEqual({
+      sessionId: "session_metadata",
+      visitorId: "visitor_metadata"
+    });
+    expect(result.finalMetadata).toEqual({
+      datafast_session_id: "session_metadata",
+      datafast_visitor_id: "visitor_metadata"
+    });
+  });
+
   it("lets explicit tracking win over cookies and metadata", async () => {
     const result = await createCheckout({
       metadata: {
@@ -73,7 +149,12 @@ describe("createCheckout", () => {
         visitorId: "from-explicit"
       }
     }, {
-      cookieHeader: "datafast_visitor_id=visitor_cookie; datafast_session_id=session_cookie"
+      request: {
+        headers: {
+          cookie: "datafast_visitor_id=visitor_cookie; datafast_session_id=session_cookie"
+        },
+        url: "/api/checkout?datafast_visitor_id=visitor_query&datafast_session_id=session_query"
+      }
     }, {
       captureSessionId: true,
       creem,
@@ -84,6 +165,29 @@ describe("createCheckout", () => {
     expect(result.finalMetadata).toEqual({
       datafast_session_id: "from-explicit-session",
       datafast_visitor_id: "from-explicit"
+    });
+  });
+
+  it("ignores malformed request urls", async () => {
+    const result = await createCheckout({
+      productId: "prod_123",
+      successUrl: "https://example.com/success"
+    }, {
+      request: {
+        headers: {
+          cookie: "datafast_visitor_id=visitor_cookie"
+        },
+        url: "http://%"
+      }
+    }, {
+      captureSessionId: true,
+      creem,
+      logger: noopLogger,
+      strictTracking: false
+    });
+
+    expect(result.injectedTracking).toEqual({
+      visitorId: "visitor_cookie"
     });
   });
 

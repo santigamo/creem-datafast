@@ -24,6 +24,7 @@ export type HeadersLike =
 
 export interface RequestLike {
   headers: HeadersLike;
+  url?: string;
 }
 
 export interface CheckoutCustomerInput {

@@ -122,7 +122,7 @@ app.post("/api/checkout", async (req, res) => {
       successUrl: `${process.env.APP_BASE_URL!}/success`
     },
     {
-      request: { headers: req.headers }
+      request: { headers: req.headers, url: req.url }
     }
   );
 
@@ -138,7 +138,7 @@ app.post(
 
 ## Client-Side Helper
 
-Use the browser helper when your checkout request originates from the browser and cookies are not automatically forwarded to your backend (e.g. cross-origin fetch calls). In same-origin setups the server-side cookie capture handles this automatically.
+Use the browser helper when your checkout request originates from the browser and cookies are not automatically forwarded to your backend (e.g. cross-origin fetch calls). If your backend passes the incoming `{ request }` into `createCheckout()`, the server reads `datafast_visitor_id` and `datafast_session_id` from the request query string automatically. In same-origin setups the server-side cookie capture handles this automatically.
 
 ```ts
 import { appendDataFastTracking, getDataFastTracking } from "creem-datafast/client";
@@ -146,6 +146,13 @@ import { appendDataFastTracking, getDataFastTracking } from "creem-datafast/clie
 const tracking = getDataFastTracking();
 const checkoutEndpoint = appendDataFastTracking("/api/checkout", tracking);
 ```
+
+Tracking precedence during checkout creation is:
+
+1. `params.tracking`
+2. `params.metadata.datafast_*`
+3. `request.url` query params
+4. cookies from `request.headers.cookie` or `cookieHeader`
 
 ## Advanced
 

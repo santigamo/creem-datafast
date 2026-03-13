@@ -1,7 +1,7 @@
 ## Codebase Patterns
 - Treat Creem initial subscription `checkout.completed` deliveries as control-flow only; ignore them and let `subscription.paid` own payment attribution so the first recurring purchase is not forwarded twice.
 - Verify Creem webhooks against the raw body and keep adapters transport-only; Express integrations must use `express.raw({ type: "application/json" })`.
-- Keep tracking precedence explicit: `params.tracking` overrides metadata tracking keys, metadata tracking keys override cookies, and only `datafast_visitor_id` / `datafast_session_id` are ever injected.
+- Keep tracking precedence explicit: `params.tracking` overrides metadata tracking keys, metadata tracking keys override `request.url` query params, query params override cookies, and only `datafast_visitor_id` / `datafast_session_id` are ever injected.
 - Map `refund.created` to a fresh DataFast payment with `refunded: true` and use the Creem refund id as `transaction_id` so partial/full refunds keep unique event identities.
 - `subscription.paid` should hydrate `last_transaction_id` when available and only fall back to product pricing on hydration failure.
 - Creem webhook `object.customer` fields are polymorphic; preserve `customer_id` whether the payload sends a hydrated object or a raw string id.
@@ -205,4 +205,13 @@
 - **Learnings for future iterations:**
   - Creem emits both `checkout.completed` and `subscription.paid` for the first subscription charge, but they are not two payment events and must not both be forwarded to DataFast.
   - Event-id idempotency is not enough for cross-event attribution bugs; protect these cases with explicit webhook control-flow guards when upstream semantics split provisioning and billing.
+---
+## 2026-03-13 13:39 CET - checkout-query-tracking
+- Made `createCheckout()` read `datafast_visitor_id` / `datafast_session_id` from `request.url` query params so the documented cross-origin browser helper flow works when the backend passes `{ request }`.
+- Documented the full precedence chain in the README, updated the Express example to pass `req.url`, and captured the reusable rule in `AGENTS.md`.
+- Added regression coverage for query-param-only tracking, query params beating cookies, metadata beating query params, and malformed URLs falling back to cookies.
+- Files changed: `src/core/types.ts`, `src/core/checkout.ts`, `tests/unit/checkout.test.ts`, `README.md`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - Cross-origin checkout attribution only works automatically when the backend passes both headers and URL context into `createCheckout()`.
+  - Parse request URLs with a fixed base so absolute `Request.url` values and relative Express `req.url` values share the same code path.
 ---

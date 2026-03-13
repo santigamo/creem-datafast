@@ -4,6 +4,7 @@
 
 - The publishable package lives at the repository root; the runnable merchant example lives in `example-next/`.
 - Webhook verification depends on the exact raw body. For Express integrations use `express.raw({ type: "application/json" })`, not `express.json()`.
+- `createCheckout()` tracking resolution is per-field and ordered as `params.tracking` -> metadata `datafast_*` -> `request.url` query params -> cookies; Express integrations that rely on the browser helper should pass `req.url`.
 - Reserve `MissingTrackingError` for strict tracking failures; invalid Creem SDK responses should throw the generic `CreemDataFastError`.
 - Map `refund.created` into a new DataFast payment with `refunded: true` and use the Creem refund id as `transaction_id`; do not reuse the original transaction id.
 - `subscription.paid` should prefer hydrated transaction data from `last_transaction_id` and only fall back to `product.price` / `product.currency` if hydration fails.
