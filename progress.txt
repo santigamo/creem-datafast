@@ -11,6 +11,7 @@
 - Distribution confidence should come from installing the packed `.tgz` into an isolated consumer fixture and checking root plus subpath imports, not from importing source files inside the repo.
 - Keep root-package CI separate from framework-example CI when their runtime floors differ; the library's Node support claim should be validated independently from `example-next`'s Next.js minimum.
 - Workspace examples should import the built root package via `workspace:*` and `exports`, not source aliases to `../src/*`; packaged smoke tests already cover the tarball case.
+- Test tooling must also honor the package Node floor; if CI validates Node 18, keep `vitest` on a major that still supports Node 18.
 
 ## 2026-03-12 18:45 - setup
 - Initialized the `creem-datafast` package from scratch with strict TypeScript, `tsup`, `vitest`, and a pnpm workspace for the example app.
@@ -164,4 +165,11 @@
 - **Learnings for future iterations:**
   - If a workspace example should represent real consumer usage, make it resolve the package through `exports` and require a root build instead of adding source-level aliasing.
   - Keep packaged distribution checks in `smoke:consumer`; example apps should validate integration against the current workspace package, not duplicate tarball-install coverage.
+---
+## 2026-03-13 12:15 - vitest-node18-compat
+- Downgraded `vitest` from v4 to v3 so the package test job remains compatible with the repository's `node >=18` support claim.
+- Files changed: `package.json`, `pnpm-lock.yaml`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - `vitest` v4 requires Node 20+, so it cannot be used if the repo still validates tests on Node 18.
+  - CI minimum-version failures can come from tooling engines, not only from the package code under test; check the installed dependency `engines` field first.
 ---
