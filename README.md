@@ -223,7 +223,7 @@ Only `datafast_visitor_id` is forwarded in webhook payment payloads today. `data
 
 ### Custom webhook response logic (Next.js)
 
-If you need custom response logic in Next.js, use `handleWebhookRequest()` instead of `createNextWebhookHandler()`. It reads the raw body for you and forwards the webhook through the same core path. Note that it consumes the request body stream. Since `handleWebhookRequest()` is a low-level helper, you are responsible for catching `InvalidCreemSignatureError` (→ 400) and unexpected errors (→ 500).
+If you need custom response logic in Next.js, use `handleWebhookRequest()` instead of `createNextWebhookHandler()`. It reads the raw body for you and forwards the webhook through the same core path. `handleWebhookRequest()` is exported from `creem-datafast/next`, while `InvalidCreemSignatureError` stays on the root `creem-datafast` entrypoint with the rest of the framework-agnostic error types. Note that it consumes the request body stream. Since `handleWebhookRequest()` is a low-level helper, you are responsible for catching `InvalidCreemSignatureError` (→ 400) and unexpected errors (→ 500).
 
 ```ts
 import { handleWebhookRequest } from "creem-datafast/next";
@@ -320,7 +320,7 @@ pnpm --filter example-next dev
 
 Both examples consume the built workspace package from the repository root, so rerun `pnpm build` after changing library source before restarting or rebuilding either example.
 
-For `example-express`, open `http://localhost:3000` and use the landing page button to start a checkout. For `example-next`, use the same port and flow as before.
+For `example-express`, open `http://localhost:3000` and use the landing page button to start a checkout. For `example-next`, open the same URL and use the landing page button to submit `POST /api/checkout`.
 
 Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/creem` through your tunnel of choice.
 

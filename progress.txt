@@ -338,3 +338,11 @@
   - If a runnable example route still reads env-backed config after client injection, runtime tests will carry unnecessary setup and hide a real coupling in the example factory.
   - When a runtime integration test mixes example code imported from the built package with source-imported helpers, `instanceof` checks can drift across duplicate error class copies; build the injected client from the package surface in those tests.
 ---
+## 2026-03-13 17:15 CET - readme-example-clarity
+- Clarified the root README so the local-run instructions explicitly say the Next.js example has a landing-page checkout button wired to `POST /api/checkout`.
+- Clarified the advanced Next.js webhook section so readers know `handleWebhookRequest()` comes from `creem-datafast/next` while `InvalidCreemSignatureError` comes from the root `creem-datafast` entrypoint.
+- Files changed: `README.md`
+- **Learnings for future iterations:**
+  - When examples expose the same flow through different framework adapters, README run instructions should name the visible entry point explicitly instead of saying "same flow as before".
+  - If a documented code sample imports from multiple package entrypoints, say why in prose so the public surface split is obvious to first-time users.
+---
