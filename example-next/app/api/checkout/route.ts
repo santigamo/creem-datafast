@@ -4,8 +4,9 @@ import { getCreemDataFastClient, getExampleConfig } from "../../../lib/creem-dat
 
 export const runtime = "nodejs";
 
+const client = getCreemDataFastClient();
+
 export async function POST(request: Request) {
-  const client = getCreemDataFastClient();
   const config = getExampleConfig();
   const { checkoutUrl } = await client.createCheckout(
     {
