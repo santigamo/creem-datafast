@@ -192,9 +192,12 @@ Package checks:
 pnpm build
 pnpm test
 pnpm typecheck
+pnpm smoke:consumer
 ```
 
 These same checks run in GitHub Actions on every push and pull request.
+
+`pnpm smoke:consumer` packs the real `.tgz`, installs it into an isolated TypeScript consumer fixture, runs `tsc --noEmit`, and verifies the root plus `next`, `express`, and `client` subpath imports at runtime.
 
 Example app:
 

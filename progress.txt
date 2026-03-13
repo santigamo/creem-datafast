@@ -8,6 +8,7 @@
 - Keep `creem-datafast` root exports limited to the framework-agnostic core; adapter/browser APIs and their types should stay on subpath entrypoints.
 - Next.js-specific webhook conveniences belong in `creem-datafast/next`; if they accept `Request`, document clearly that they consume the body stream once.
 - Creem transaction hydration fixtures should use millisecond `createdAt` values to match the SDK and catch timestamp unit regressions.
+- Distribution confidence should come from installing the packed `.tgz` into an isolated consumer fixture and checking root plus subpath imports, not from importing source files inside the repo.
 
 ## 2026-03-12 18:45 - setup
 - Initialized the `creem-datafast` package from scratch with strict TypeScript, `tsup`, `vitest`, and a pnpm workspace for the example app.
@@ -129,4 +130,12 @@
 - **Learnings for future iterations:**
   - Refund analytics should be modeled as new payment events, not mutations of the original payment, because DataFast expects unique `transaction_id` values.
   - Refund tracking should prefer refund metadata but fall back to transaction metadata so merchant attribution survives payload shape differences.
+---
+## 2026-03-13 11:30 - packaged-consumer-smoke
+- Added a packaged consumer smoke flow that builds the library, creates a real `.tgz`, installs it into an isolated fixture, and validates the root plus `next`, `express`, and `client` exports with both TypeScript and runtime imports.
+- Kept the smoke fixture separate from the repo `tsc` scope so internal typecheck only covers source and unit tests while packaged validation runs through `pnpm smoke:consumer`.
+- Files changed: `package.json`, `scripts/smoke-consumer.mjs`, `tests/smoke/consumer-node/*`, `tsconfig.json`, `README.md`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Consumer smoke fixtures should be copied into a temporary directory before install so the repo does not accumulate test-only lockfiles or `node_modules`.
+  - Root `tsconfig` should exclude packaged-consumer fixtures; those imports are supposed to resolve only after installing the tarball under test.
 ---

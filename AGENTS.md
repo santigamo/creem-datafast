@@ -16,3 +16,4 @@
 - Creem SDK transaction hydration uses numeric `createdAt` / `created_at` timestamps in milliseconds; fixtures should match that format so hydration tests catch unit mistakes.
 - If `package.json` claims Node compatibility through `engines`, the GitHub Actions matrix should exercise the minimum supported Node version plus the primary current version.
 - The root `SKILL.md` is consumer-facing documentation for AI coding agents; keep it aligned with the README quickstarts and the supported Next.js / Express integration patterns.
+- Distribution regressions are easiest to catch by installing the packed `.tgz` into an isolated consumer fixture; keep `pnpm smoke:consumer` aligned with the published exports and subpaths.

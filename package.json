@@ -53,6 +53,8 @@
   },
   "scripts": {
     "build": "tsup",
+    "pack:local": "pnpm build && pnpm pack --pack-destination .artifacts",
+    "smoke:consumer": "node scripts/smoke-consumer.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
