@@ -188,7 +188,7 @@ Example app only:
 Optional constructor hardening:
 
 - `timeoutMs`: per-request timeout for DataFast forwarding. Defaults to `8000`.
-- `retry.retries`: number of retry attempts after the first DataFast request. Defaults to `1`.
+- `retry.retries`: additional retry attempts after the initial DataFast request, so `1` means up to `2` total attempts. Defaults to `1`.
 - `retry.baseDelayMs`: base backoff delay in milliseconds. Defaults to `250`.
 - `retry.maxDelayMs`: maximum backoff delay in milliseconds. Defaults to `2000`.
 

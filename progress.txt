@@ -7,6 +7,7 @@
 - DataFast forwarding should use explicit per-request timeouts and bounded retries in the core client; retry only network errors, timeout aborts, and HTTP `408` / `429` / `5xx`.
 - Workspace examples should import the built root package through published `exports`; rebuild the root package before running the example after library changes.
 - Keep `creem-datafast` root exports limited to the framework-agnostic core; adapter/browser APIs and their types should stay on subpath entrypoints.
+- Runtime error classes that consumer code may branch on should be exported from the root package, not only from internal files.
 - Next.js-specific webhook conveniences belong in `creem-datafast/next`; if they accept `Request`, document clearly that they consume the body stream once.
 - Creem transaction hydration fixtures should use millisecond `createdAt` values to match the SDK and catch timestamp unit regressions.
 - Distribution confidence should come from installing the packed `.tgz` into an isolated consumer fixture and checking root plus subpath imports, not from importing source files inside the repo.
@@ -188,4 +189,11 @@
 - **Learnings for future iterations:**
   - Keep retry policy explicit and narrow in library code; predictable transport behavior is more valuable than aggressive retry heuristics in webhook flows.
   - Attach truncated response bodies and request ids to transport errors so production debugging stays useful without flooding logs.
+---
+## 2026-03-13 12:35 - datafast-error-export-and-logging
+- Exported `DataFastRequestError` from the root package, added retry and timeout warning logs in the DataFast client, clarified that `retry.retries` counts additional attempts, and extended unit plus packaged-smoke coverage for the new root export.
+- Files changed: `src/index.ts`, `src/core/datafast-client.ts`, `tests/unit/datafast-client.test.ts`, `tests/smoke/consumer-node/index.ts`, `tests/smoke/consumer-node/runtime.mjs`, `README.md`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - If a custom error is part of the supported debugging contract, export it from the root package so consumer code can use `instanceof` safely.
+  - Retry logs should describe both the current attempt and the next attempt so production traces explain why one extra outbound call happened.
 ---

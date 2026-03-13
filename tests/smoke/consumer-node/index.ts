@@ -1,3 +1,4 @@
-import { createCreemDataFast } from "creem-datafast";
+import { DataFastRequestError, createCreemDataFast } from "creem-datafast";
 
 void createCreemDataFast;
+void DataFastRequestError;

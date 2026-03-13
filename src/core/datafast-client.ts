@@ -1,4 +1,5 @@
 import { DataFastRequestError } from "./errors.js";
+import { resolveLogger } from "./logger.js";
 import type {
   CreemDataFastOptions,
   DataFastPaymentPayload,
@@ -132,6 +133,7 @@ export function createDataFastClient(
   options: CreemDataFastOptions
 ): InternalDataFastClient {
   const fetchImplementation = resolveFetch(options.fetch);
+  const logger = resolveLogger(options.logger);
   const timeoutMs = resolveTimeoutMs(options.timeoutMs);
   const retry = resolveRetryConfig(options.retry);
 
@@ -172,6 +174,13 @@ export function createDataFastClient(
           );
 
           if (retryable && attempt < retry.retries) {
+            logger.warn("Retrying DataFast request after retryable response.", {
+              attempt: attempt + 1,
+              nextAttempt: attempt + 2,
+              requestId: error.requestId,
+              status: error.status,
+              statusText: error.statusText
+            });
             await sleep(computeDelayMs(attempt, retry));
             continue;
           }
@@ -181,6 +190,11 @@ export function createDataFastClient(
           const retryable = isAbortError(error) || !(error instanceof DataFastRequestError);
 
           if (retryable && attempt < retry.retries) {
+            logger.warn("Retrying DataFast request after transport failure.", {
+              attempt: attempt + 1,
+              nextAttempt: attempt + 2,
+              reason: isAbortError(error) ? "timeout" : "network_error"
+            });
             await sleep(computeDelayMs(attempt, retry));
             continue;
           }
@@ -190,6 +204,10 @@ export function createDataFastClient(
           }
 
           if (isAbortError(error)) {
+            logger.warn("DataFast request timed out.", {
+              attempts: attempt + 1,
+              timeoutMs
+            });
             throw new DataFastRequestError(
               `DataFast request timed out after ${timeoutMs}ms.`,
               {

@@ -92,6 +92,12 @@ describe("datafast client", () => {
     vi.useFakeTimers();
 
     try {
+      const logger = {
+        debug: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
+      };
       const fetchMock = vi.fn()
         .mockResolvedValueOnce(new Response(JSON.stringify({ error: "try again" }), {
           status: 503,
@@ -109,6 +115,7 @@ describe("datafast client", () => {
         creemWebhookSecret: "secret",
         datafastApiKey: "datafast_key",
         fetch: fetchMock as typeof fetch,
+        logger,
         retry: {
           retries: 1,
           baseDelayMs: 1,
@@ -126,6 +133,15 @@ describe("datafast client", () => {
 
       await expect(promise).resolves.toEqual({ ok: true });
       expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(logger.warn).toHaveBeenCalledWith(
+        "Retrying DataFast request after retryable response.",
+        expect.objectContaining({
+          attempt: 1,
+          nextAttempt: 2,
+          requestId: "req_retryable",
+          status: 503
+        })
+      );
     } finally {
       vi.useRealTimers();
     }
@@ -170,6 +186,12 @@ describe("datafast client", () => {
     vi.useFakeTimers();
 
     try {
+      const logger = {
+        debug: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
+      };
       const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
         init?.signal?.addEventListener("abort", () => {
           reject(new DOMException("The operation was aborted.", "AbortError"));
@@ -180,6 +202,7 @@ describe("datafast client", () => {
         creemWebhookSecret: "secret",
         datafastApiKey: "datafast_key",
         fetch: fetchMock as typeof fetch,
+        logger,
         timeoutMs: 50,
         retry: {
           retries: 1,
@@ -201,6 +224,23 @@ describe("datafast client", () => {
       expect(error.retryable).toBe(true);
       expect(error.message).toBe("DataFast request timed out after 50ms.");
       expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(logger.warn).toHaveBeenNthCalledWith(
+        1,
+        "Retrying DataFast request after transport failure.",
+        expect.objectContaining({
+          attempt: 1,
+          nextAttempt: 2,
+          reason: "timeout"
+        })
+      );
+      expect(logger.warn).toHaveBeenNthCalledWith(
+        2,
+        "DataFast request timed out.",
+        {
+          attempts: 2,
+          timeoutMs: 50
+        }
+      );
     } finally {
       vi.useRealTimers();
     }

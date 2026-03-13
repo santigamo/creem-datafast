@@ -1,7 +1,7 @@
 import { createCheckout } from "./core/checkout.js";
 import { createCreemClient } from "./core/creem-client.js";
 import { createDataFastClient } from "./core/datafast-client.js";
-import { InvalidCreemSignatureError } from "./core/errors.js";
+import { DataFastRequestError, InvalidCreemSignatureError } from "./core/errors.js";
 import { resolveLogger } from "./core/logger.js";
 import { extractHeader, verifyCreemSignature } from "./core/signature.js";
 import { handleWebhook } from "./core/webhook.js";
@@ -34,6 +34,10 @@ export type {
   RetryConfig,
   SupportedWebhookEvent
 } from "./core/types.js";
+
+export {
+  DataFastRequestError
+} from "./core/errors.js";
 
 export function createCreemDataFast(
   options: CreemDataFastOptions
