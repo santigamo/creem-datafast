@@ -5,6 +5,7 @@ import refundCreatedFixture from "../fixtures/refund-created.json";
 import subscriptionPaidFixture from "../fixtures/subscription-paid.json";
 import transactionFixture from "../fixtures/transaction.json";
 
+import { createCreemDataFast } from "../../src/index.js";
 import { InvalidCreemSignatureError } from "../../src/core/errors.js";
 import { noopLogger } from "../../src/core/logger.js";
 import { handleWebhook } from "../../src/core/webhook.js";
@@ -231,6 +232,44 @@ describe("handleWebhook", () => {
       ok: true,
       reason: "duplicate_event"
     });
+  });
+
+  it("deduplicates repeated deliveries through the public factory default store", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: {
+          "content-type": "application/json"
+        }
+      })
+    );
+    const client = createCreemDataFast({
+      creemClient: {
+        checkouts: {
+          create: vi.fn()
+        },
+        transactions: {
+          getById: vi.fn()
+        }
+      },
+      creemWebhookSecret: webhookSecret,
+      datafastApiKey: "datafast_key",
+      fetch: fetchMock as typeof fetch
+    });
+    const params = createParams(checkoutCompletedFixture);
+
+    const firstResult = await client.handleWebhook(params);
+    const secondResult = await client.handleWebhook(params);
+
+    expect(firstResult.ignored).toBe(false);
+    expect(secondResult).toEqual({
+      eventId: "evt_checkout_completed_123",
+      eventType: "checkout.completed",
+      ignored: true,
+      ok: true,
+      reason: "duplicate_event"
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("processes only one concurrent delivery for the same event", async () => {

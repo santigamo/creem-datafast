@@ -427,3 +427,11 @@
   - `minorToMajor()` should stay a pure exponent normalization step because Creem already provides integer minor units.
   - Internal helpers that resolve optional dependencies should mirror the public factory defaults or reviewers will correctly suspect hidden behavior drift.
 ---
+## 2026-03-13 18:52 CET - public-default-idempotency-regression
+- Added an end-to-end webhook regression that exercises `createCreemDataFast()` without a custom `idempotencyStore` and verifies duplicate deliveries are ignored after the first successful forward.
+- Annotated the project log with this follow-up because the older `2026-03-12 18:42 - v1` note about a noop default is historical and no longer reflects the current public or internal behavior.
+- Files changed: `tests/unit/webhook.test.ts`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - If docs promise a public default, cover it through the public factory path instead of relying only on unit tests around the lower-level resolver.
+  - When an old `progress.txt` note becomes obsolete, append a correcting entry instead of rewriting history.
+---

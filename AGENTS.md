@@ -12,6 +12,7 @@
 - Creem webhook payloads may send `object.customer` either as a hydrated object or as a string id; mapping code must preserve `customer_id` in both shapes.
 - The default idempotency behavior uses an in-process `MemoryIdempotencyStore`; production consumers still need a real atomic `idempotencyStore` if they need dedupe across processes or restarts.
 - Internal default-resolver helpers must stay aligned with the public factory defaults; do not let `handleWebhook()` silently fall back to a different idempotency store than `createCreemDataFast()`.
+- When a default matters in public API docs, keep one test on the public factory path in addition to lower-level helper tests so hidden fallback drift is caught end-to-end.
 - Production idempotency stores must implement atomic `claim` / `complete` / `release` semantics; never reintroduce split `has` / `set` checks around webhook forwarding.
 - Keep the root package export surface framework-agnostic and minimal; adapter/browser runtime APIs and their types belong on subpath entrypoints.
 - Provider-specific infrastructure helpers should ship as responsibility-scoped subpaths with optional peer dependencies so the root package stays lightweight for consumers who do not use that integration.
