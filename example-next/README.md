@@ -28,13 +28,14 @@ ngrok http 3000
 
 Then point your Creem webhook endpoint to `https://<your-tunnel>/api/webhook/creem`.
 
-Open [http://localhost:3000](http://localhost:3000) and press the checkout button.
+Open [http://localhost:3000](http://localhost:3000) and try both checkout buttons.
 
 ## What it shows
 
 - DataFast tracking script injecting `datafast_visitor_id` cookies
 - Server-side checkout creation with `createCreemDataFast()`
 - Automatic cookie capture through `createCheckout(..., { request })`
+- Browser-helper checkout requests using `getDataFastTracking()` + `appendDataFastTracking()` before the `POST /api/checkout`
 - Full custom webhook handling with `handleWebhookRequest()`, including low-level error mapping
 - Branching on `result.ignored` before returning the final response
 - Development-time logging of the payload forwarded to DataFast

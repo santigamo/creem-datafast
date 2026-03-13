@@ -4,6 +4,7 @@
 - Injectable third-party clients should expose a small public interface instead of `unknown`, and that type should stay aligned with the runtime validator.
 - Runtime integration coverage for runnable examples should boot the real app and inject a real `createCreemDataFast()` client while faking only the external Creem/DataFast edges.
 - Runnable example factories that accept injected clients should also accept injected route config, and runtime tests that cross the package boundary should construct clients from the published package surface so error-class `instanceof` checks stay aligned.
+- If a root Vitest test needs to validate `example-next` client behavior, keep the URL-building logic in a tiny exported helper so the test can stay node-only without adding jsdom or React Testing Library.
 - Keep the root README focused on install/use/configure quickstart flow; move longer operational recipes with infrastructure snippets into `docs/` and link from the relevant README sections.
 - Packaged consumer smoke coverage should include every README-documented root import so published exports and docs cannot drift apart silently.
 - Runnable examples that use low-level helpers should model the documented error mapping contract, not just the success path.
@@ -390,4 +391,12 @@
 - Files changed: `tests/unit/example-express-app.test.ts`, `progress.txt`
 - **Learnings for future iterations:**
   - When example copy documents multiple HTTP outcomes, keep the example app tests aligned with every documented branch so contract drift is caught in the runnable example itself.
+---
+## 2026-03-13 18:29 CET - next-client-helper-example-flow
+- Added a second landing-page checkout path in `example-next` that uses the browser helper before `POST /api/checkout`, so the example now demonstrates both same-origin server cookie capture and client-side tracking propagation.
+- Added a node-only unit test around the exported helper that builds the tracked checkout URL, and updated the docs so local verification now calls out both Next.js flows explicitly.
+- Files changed: `example-next/app/checkout-button.tsx`, `example-next/app/page.tsx`, `example-next/app/globals.css`, `tests/unit/example-next-checkout-button.test.ts`, `README.md`, `example-next/README.md`, `tsconfig.json`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - When an example needs to prove browser-helper behavior but the repo test runner is node-only, exporting a tiny pure URL builder from the client component keeps coverage cheap and avoids pulling in jsdom.
+  - If a landing page demonstrates multiple attribution paths, label them explicitly in the visible UI and the README so reviewers can verify the right path instead of inferring it from implementation details.
 ---

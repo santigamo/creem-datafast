@@ -1,3 +1,5 @@
+import { CheckoutButton } from "./checkout-button";
+
 export default function HomePage() {
   return (
     <main className="spread">
@@ -18,14 +20,20 @@ export default function HomePage() {
           </p>
         </div>
 
-        <form action="/api/checkout" className="cta-form" method="POST">
-          <button className="cta-button" type="submit">
-            Launch test checkout
-          </button>
-          <a className="ghost-link" href="/success">
-            Success page
-          </a>
-        </form>
+        <div className="cta-stack">
+          <form action="/api/checkout" className="cta-form" method="POST">
+            <button className="cta-button" type="submit">
+              Launch checkout via server cookie capture
+            </button>
+            <a className="ghost-link" href="/success">
+              Success page
+            </a>
+          </form>
+          <p className="cta-caption">
+            Same-origin form post: the backend reads DataFast tracking directly from the incoming request cookies.
+          </p>
+          <CheckoutButton />
+        </div>
 
         <div className="setup-guides">
           <details className="guide">
@@ -106,8 +114,8 @@ export default function HomePage() {
               <div>
                 <strong>Capture</strong>
                 <p>
-                  Server reads <code>datafast_visitor_id</code> from cookies and
-                  injects it into Creem checkout metadata.
+                  Server reads <code>datafast_visitor_id</code> from request query
+                  params or cookies and injects it into Creem checkout metadata.
                 </p>
               </div>
             </div>

@@ -311,10 +311,17 @@ code {
 
 /* ── CTA ── */
 
+.cta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .cta-form {
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .cta-button,
@@ -349,6 +356,14 @@ code {
   box-shadow: 0 16px 34px rgba(28, 25, 23, 0.24);
 }
 
+.cta-button:disabled,
+.ghost-link:disabled {
+  cursor: progress;
+  opacity: 0.72;
+  transform: none;
+  box-shadow: none;
+}
+
 .cta-button:active {
   transform: scale(0.98);
 }
@@ -362,6 +377,27 @@ code {
 .ghost-link:hover {
   transform: translateY(-1px);
   background: rgba(255, 255, 255, 0.64);
+}
+
+.cta-helper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cta-caption,
+.cta-error {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.cta-caption {
+  color: var(--body);
+}
+
+.cta-error {
+  color: var(--accent);
 }
 
 /* ── Success ── */

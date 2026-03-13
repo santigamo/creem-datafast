@@ -27,6 +27,7 @@
 - If `package.json` claims Node compatibility through `engines`, the GitHub Actions matrix should exercise the minimum supported Node version plus the primary current version.
 - Keep library CI separate from framework example CI when their Node requirements differ; `example-next` follows Next.js runtime minimums and should not dilute the root package's `node >=18` claim.
 - `example-next` should consume the root workspace package through its published `exports`, not `../src/*`; rebuild the root package before running the example after library changes.
+- If a root Vitest test needs to validate `example-next` client behavior, keep the URL-building logic in a tiny exported helper so the test can stay node-only without adding jsdom or React Testing Library.
 - Lightweight adapter demos should stay as small workspace apps: prefer `tsx` plus a tiny local `.env.local` loader over adding bundlers or `dotenv` when the example only needs to prove the integration shape.
 - Runnable server examples should keep `listen()` in a tiny entry file and export a reusable app factory so runtime integration tests can mount the real routes without side effects at import time.
 - Runtime integration tests for runnable examples should inject a real `createCreemDataFast()` client and fake only external edges (`creemClient`, outbound DataFast `fetch`) so route wiring, raw-body handling, signatures, and mapping stay real.
