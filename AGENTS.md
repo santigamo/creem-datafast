@@ -19,6 +19,7 @@
 - Runtime error classes that consumers are expected to branch on with `instanceof` should be exported from the root package.
 - The published package is ESM-only; keep README compatibility notes and package exports aligned so consumers do not assume `require()` support.
 - Webhook signature verification uses Web Crypto and is async end-to-end; docs, examples, and tests should always `await verifyWebhookSignature()`.
+- Keep runtime Web Crypto resolution worker-safe; if Node 18 Vitest workers lack `globalThis.crypto`, polyfill it in test setup instead of importing Node built-ins from published runtime code.
 - For Next.js custom webhook responses, prefer `handleWebhookRequest()` from `creem-datafast/next`; it shares the adapter path and consumes the `Request` body stream once.
 - Runnable examples that use low-level helpers must demonstrate the required error mapping contract, not only the success path.
 - Creem SDK transaction hydration uses numeric `createdAt` / `created_at` timestamps in milliseconds; fixtures should match that format so hydration tests catch unit mistakes.

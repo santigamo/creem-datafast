@@ -21,6 +21,7 @@
 - Keep `creem-datafast` root exports limited to the framework-agnostic core; adapter/browser APIs and their types should stay on subpath entrypoints.
 - Provider-specific infrastructure helpers should live on responsibility-scoped subpaths with optional peer dependencies so the default install stays lightweight.
 - Packaged smoke fixtures for peer-backed subpaths should verify both runtime export presence and assignment to the documented public interface.
+- If Node 18 Vitest workers lack `globalThis.crypto`, fix that in test setup with `node:crypto`.`webcrypto`; do not add Node-only runtime fallbacks that leak into worker bundles.
 - Runtime error classes that consumer code may branch on should be exported from the root package, not only from internal files.
 - Next.js-specific webhook conveniences belong in `creem-datafast/next`; if they accept `Request`, document clearly that they consume the body stream once.
 - Creem transaction hydration fixtures should use millisecond `createdAt` values to match the SDK and catch timestamp unit regressions.
@@ -375,4 +376,12 @@
 - **Learnings for future iterations:**
   - A peer-backed helper can preserve optional install ergonomics and still be smoke-tested in alternate runtimes by using structural fakes instead of importing the real provider client.
   - README snippets should include the lowest-friction provider bootstrap path, such as `Redis.fromEnv()`, when the provider supports it directly.
+---
+## 2026-03-13 18:02 CET - node18-webcrypto-test-setup
+- Restored runtime signature verification to the worker-safe `globalThis.crypto` path and added a Vitest setup polyfill that injects `node:crypto`.`webcrypto` only for Node test workers that lack it.
+- Kept the Web Crypto unavailability regression by overriding the polyfilled global inside the test itself, and revalidated the affected webhook plus Express runtime suites along with the Cloudflare worker smoke.
+- Files changed: `src/core/signature.ts`, `tests/unit/signature.test.ts`, `tests/setup/node-webcrypto.ts`, `vitest.config.ts`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - A Node-only Web Crypto fallback inside published runtime code can contaminate worker bundles even when guarded at runtime, because worker tooling may still statically analyze the import path.
+  - When a Node compatibility issue only appears inside the test runner, prefer a test-setup polyfill over widening the published runtime surface.
 ---

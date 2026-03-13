@@ -7,6 +7,7 @@ export default defineConfig({
     include: [
       "tests/unit/**/*.test.ts",
       "tests/integration/**/*.test.ts"
-    ]
+    ],
+    setupFiles: ["./tests/setup/node-webcrypto.ts"]
   }
 });

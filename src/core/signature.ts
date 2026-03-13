@@ -29,11 +29,11 @@ function hexToUint8Array(input: string): Uint8Array | undefined {
 
 function getWebCrypto(): SubtleCrypto {
   const subtle = globalThis.crypto?.subtle;
-  if (!subtle) {
-    throw new CreemDataFastError("Web Crypto API is required to verify Creem signatures.");
+  if (subtle) {
+    return subtle;
   }
 
-  return subtle;
+  throw new CreemDataFastError("Web Crypto API is required to verify Creem signatures.");
 }
 
 function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
