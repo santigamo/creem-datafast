@@ -26,3 +26,4 @@
 - Keep GitHub Actions JavaScript actions on majors that support the current runner runtime; `actions/checkout@v5` and `actions/setup-node@v5` avoid the Node 20 deprecation warning.
 - The root `SKILL.md` is consumer-facing documentation for AI coding agents; keep it aligned with the README quickstarts and the supported Next.js / Express integration patterns.
 - Distribution regressions are easiest to catch by installing the packed `.tgz` into an isolated consumer fixture; keep `pnpm smoke:consumer` aligned with the published exports and subpaths.
+- Keep `datafast_session_id` capture limited to Creem metadata until DataFast documents payment API support for it; webhook payment payloads should continue forwarding only `datafast_visitor_id`.

@@ -27,6 +27,8 @@ Connecting Creem payments to DataFast requires capturing visitor cookies at chec
 4. Creem sends `checkout.completed`, `subscription.paid`, and `refund.created` webhooks back to your server.
 5. `handleWebhook()` verifies `creem-signature`, deduplicates by event id, maps the payload, and forwards the payment or refund to DataFast.
 
+During checkout capture, both tracking ids are preserved in Creem metadata. During webhook forwarding, only `datafast_visitor_id` is sent to DataFast because the current DataFast payment API documents `datafast_visitor_id` but not `datafast_session_id`.
+
 ## Supported Events
 
 - `checkout.completed`
@@ -153,6 +155,8 @@ Tracking precedence during checkout creation is:
 2. `params.metadata.datafast_*`
 3. `request.url` query params
 4. cookies from `request.headers.cookie` or `cookieHeader`
+
+Only `datafast_visitor_id` is forwarded in webhook payment payloads today. `datafast_session_id` is still worth capturing because it is stored in Creem metadata and can be forwarded later if DataFast adds documented support for it in the payment API.
 
 ## Advanced
 

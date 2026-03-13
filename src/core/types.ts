@@ -88,6 +88,13 @@ export type SupportedWebhookEvent =
   | "subscription.paid"
   | "refund.created";
 
+/**
+ * DataFast payment payload fields currently documented by the receiver API.
+ *
+ * `datafast_session_id` is captured during checkout and preserved in Creem
+ * metadata, but it is intentionally not forwarded here until DataFast documents
+ * support for it on `POST /api/v1/payments`.
+ */
 export interface DataFastPaymentPayload {
   amount: number;
   currency: string;

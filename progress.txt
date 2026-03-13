@@ -1,5 +1,6 @@
 ## Codebase Patterns
 - Keep the root README focused on install/use/configure quickstart flow; move longer operational recipes with infrastructure snippets into `docs/` and link from the relevant README sections.
+- Keep `datafast_session_id` capture limited to Creem metadata until DataFast documents payment API support for it; webhook payment payloads should forward only `datafast_visitor_id`.
 - Treat Creem initial subscription `checkout.completed` deliveries as control-flow only; ignore them and let `subscription.paid` own payment attribution so the first recurring purchase is not forwarded twice.
 - Verify Creem webhooks against the raw body and keep adapters transport-only; Express integrations must use `express.raw({ type: "application/json" })`.
 - Keep tracking precedence explicit: `params.tracking` overrides metadata tracking keys, metadata tracking keys override `request.url` query params, query params override cookies, and only `datafast_visitor_id` / `datafast_session_id` are ever injected.
@@ -221,4 +222,11 @@
 - Files changed: `README.md`, `docs/production-idempotency.md`, `progress.txt`
 - **Learnings for future iterations:**
   - Keep the root README focused on install/use/configure flow; move longer operational recipes with copy-paste infrastructure snippets into `docs/` and link them from the relevant entry points.
+---
+## 2026-03-13 13:54 CET - docs-session-id-forwarding
+- Documented that `datafast_session_id` is captured during checkout and preserved in Creem metadata, but intentionally not forwarded to DataFast payment payloads because the current payment API only documents `datafast_visitor_id`.
+- Files changed: `README.md`, `src/core/types.ts`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - Do not add undeclared attribution fields to the DataFast payment payload speculatively; keep them in Creem metadata until the receiver API documents support.
+  - Small payload-contract decisions are worth documenting in both code comments and the README so future contributors do not infer unsupported fields from checkout metadata alone.
 ---
