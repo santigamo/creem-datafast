@@ -10,8 +10,11 @@ function assertFunction(moduleName, moduleValue, exportName) {
 }
 
 assertFunction("creem-datafast", rootModule, "createCreemDataFast");
+assertFunction("creem-datafast", rootModule, "CreemDataFastError");
 assertFunction("creem-datafast", rootModule, "DataFastRequestError");
 assertFunction("creem-datafast", rootModule, "InvalidCreemSignatureError");
+assertFunction("creem-datafast", rootModule, "MemoryIdempotencyStore");
+assertFunction("creem-datafast", rootModule, "MissingTrackingError");
 assertFunction("creem-datafast/next", nextModule, "createNextWebhookHandler");
 assertFunction("creem-datafast/express", expressModule, "createExpressWebhookHandler");
 assertFunction("creem-datafast/client", browserModule, "getDataFastTracking");

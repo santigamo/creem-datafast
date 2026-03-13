@@ -36,6 +36,7 @@ export default function RootLayout({
             src="https://datafa.st/js/script.js"
             data-website-id={process.env.DATAFAST_WEBSITE_ID}
             data-domain={process.env.DATAFAST_DOMAIN}
+            data-disable-payments="true"
             data-allow-localhost="true"
           />
         )}

@@ -1,7 +1,7 @@
 {
   "name": "creem-datafast",
   "version": "0.1.0",
-  "description": "Official Creem SDK wrapper that captures DataFast visitor attribution at checkout and forwards verified payment and refund webhooks — with built-in Next.js and Express adapters.",
+  "description": "Wraps the official Creem SDK to capture DataFast visitor attribution at checkout and forward verified payment and refund webhooks — with built-in Next.js and Express adapters.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -64,7 +64,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "creem": "^1.4.1"
+    "creem": "1.4.2"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

@@ -2,7 +2,9 @@
 - Keep the root README focused on install/use/configure quickstart flow; move longer operational recipes with infrastructure snippets into `docs/` and link from the relevant README sections.
 - Packaged consumer smoke coverage should include every README-documented root import so published exports and docs cannot drift apart silently.
 - Runnable examples that use low-level helpers should model the documented error mapping contract, not just the success path.
+- Runnable server examples should export a reusable app factory and keep `listen()` in a thin entry file so runtime tests can mount the real routes without import-time side effects.
 - Keep `datafast_session_id` capture limited to Creem metadata until DataFast documents payment API support for it; webhook payment payloads should forward only `datafast_visitor_id`.
+- If an app uses the DataFast browser script together with server-side payment forwarding, disable browser payment capture with `data-disable-payments="true"` to avoid double-counting the same purchase.
 - Treat Creem initial subscription `checkout.completed` deliveries as control-flow only; ignore them and let `subscription.paid` own payment attribution so the first recurring purchase is not forwarded twice.
 - Verify Creem webhooks against the raw body and keep adapters transport-only; Express integrations must use `express.raw({ type: "application/json" })`.
 - Keep tracking precedence explicit: `params.tracking` overrides metadata tracking keys, metadata tracking keys override `request.url` query params, query params override cookies, and only `datafast_visitor_id` / `datafast_session_id` are ever injected.
@@ -291,4 +293,21 @@
 - **Learnings for future iterations:**
   - Releasing the idempotency key is only safe before the DataFast forward succeeds; after a successful send, a failed `complete()` should not be translated into an immediate release or retries may double-forward revenue.
   - Docs for production idempotency must prescribe atomic reservation semantics explicitly, otherwise consumers will naturally implement unsafe `exists`-then-`set` recipes.
+---
+## 2026-03-13 16:02 CET - example-express-runtime-integration
+- Extracted the runnable Express example into a reusable `createExampleExpressApp()` factory and kept `listen()` in the entrypoint so tests can mount the real app without import-time side effects.
+- Added a runtime integration test that starts the real Express example on an ephemeral port, posts JSON to `/api/webhook/creem`, verifies `express.raw({ type: "application/json" })` reaches `handleWebhook()` as the exact raw string, and covers the `400 Invalid signature` adapter response path.
+- Updated agent guidance with the new reusable server-example testing pattern and corrected the default idempotency note to reflect the built-in in-process store.
+- Files changed: `example-express/src/app.ts`, `example-express/src/server.ts`, `tests/unit/example-express-app.test.ts`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - A real HTTP round-trip against an ephemeral local server is the cheapest way to prove raw-body middleware wiring in runnable examples.
+  - Example app factories should take injected clients when possible so runtime tests can exercise the actual routes without depending on network calls or environment setup.
+---
+## 2026-03-13 16:05 CET - datafast-browser-script-payment-disable
+- Added `data-disable-payments="true"` to the Next.js example's DataFast script so the browser snippet does not auto-record payments that are already being forwarded server-side through webhooks.
+- Documented the browser-script plus webhook double-counting pitfall in the root README troubleshooting section and preserved the reusable rule in the agent notes.
+- Files changed: `example-next/app/layout.tsx`, `README.md`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - DataFast's browser script can auto-capture payments from success-page URL parameters, so server-side payment forwarding integrations must explicitly disable browser payment capture to avoid duplicate revenue.
+  - Troubleshooting sections should call out duplicate-counting causes separately when they come from different layers, such as webhook retries versus browser-side payment capture.
 ---

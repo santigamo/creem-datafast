@@ -1,6 +1,6 @@
 # Production Idempotency
 
-By default no idempotency store is configured, so duplicate webhook deliveries are forwarded to DataFast every time. For production, pass a durable atomic store so deduplication survives process restarts and blocks concurrent deliveries across multiple instances.
+By default `creem-datafast` uses an in-process `MemoryIdempotencyStore` that deduplicates webhook deliveries within a single server process. This is safe for single-instance setups but does not survive restarts or work across multiple instances. For production, pass a durable atomic store so deduplication survives process restarts and blocks concurrent deliveries across multiple instances.
 
 ## Interface
 

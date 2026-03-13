@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       creem:
-        specifier: ^1.4.1
-        version: 1.4.1
+        specifier: 1.4.2
+        version: 1.4.2
     devDependencies:
       '@types/node':
         specifier: ^25.5.0
@@ -758,8 +758,8 @@ packages:
     resolution: {integrity: sha512-tJtZBBHA6vjIAaF6EnIaq6laBBP9aq/Y3ouVJjEfoHbRBcHBAHYcMh/w8LDrk2PvIMMq8gmopa5D4V8RmbrxGw==}
     engines: {node: '>= 0.10'}
 
-  creem@1.4.1:
-    resolution: {integrity: sha512-P+QihyM2YBBvsTke+59TZeH5euE85F5lNj41BlyxqrIlgzFums3HLjlZHhzigGe63ftz7+tVPO6gT72YI5yDRg==}
+  creem@1.4.2:
+    resolution: {integrity: sha512-TXdSqhL3s/qb2wGhEMsM3lB9Ve+fa5mvKl8b753754Q2iSz4fQyhrdrGzOHiAr+oirDLivUaoIKbUTOW3HqqNQ==}
     hasBin: true
 
   cross-spawn@7.0.6:
@@ -2028,7 +2028,7 @@ snapshots:
       object-assign: 4.1.1
       vary: 1.1.2
 
-  creem@1.4.1:
+  creem@1.4.2:
     dependencies:
       '@modelcontextprotocol/sdk': 1.27.1(zod@4.3.6)
       zod: 4.3.6

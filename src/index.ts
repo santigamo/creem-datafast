@@ -2,6 +2,7 @@ import { createCheckout } from "./core/checkout.js";
 import { createCreemClient } from "./core/creem-client.js";
 import { createDataFastClient } from "./core/datafast-client.js";
 import { DataFastRequestError, InvalidCreemSignatureError } from "./core/errors.js";
+import { MemoryIdempotencyStore } from "./core/idempotency.js";
 import { resolveLogger } from "./core/logger.js";
 import { extractHeader, verifyCreemSignature } from "./core/signature.js";
 import { handleWebhook } from "./core/webhook.js";
@@ -36,9 +37,13 @@ export type {
 } from "./core/types.js";
 
 export {
+  CreemDataFastError,
   DataFastRequestError,
-  InvalidCreemSignatureError
+  InvalidCreemSignatureError,
+  MissingTrackingError
 } from "./core/errors.js";
+
+export { MemoryIdempotencyStore } from "./core/idempotency.js";
 
 export function createCreemDataFast(
   options: CreemDataFastOptions
@@ -49,6 +54,7 @@ export function createCreemDataFast(
   const captureSessionId = options.captureSessionId ?? true;
   const strictTracking = options.strictTracking ?? false;
   const hydrateTransactionOnSubscriptionPaid = options.hydrateTransactionOnSubscriptionPaid ?? true;
+  const idempotencyStore = options.idempotencyStore ?? new MemoryIdempotencyStore();
   const idempotencyInFlightTtlSeconds = options.idempotencyInFlightTtlSeconds ?? 300;
   const idempotencyProcessedTtlSeconds = options.idempotencyProcessedTtlSeconds ?? 86400;
 
@@ -66,7 +72,7 @@ export function createCreemDataFast(
         creemWebhookSecret: options.creemWebhookSecret,
         datafast,
         creem,
-        idempotencyStore: options.idempotencyStore,
+        idempotencyStore,
         idempotencyInFlightTtlSeconds,
         idempotencyProcessedTtlSeconds,
         hydrateTransactionOnSubscriptionPaid,

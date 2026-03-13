@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 
-Wraps the official `creem` Core SDK and forwards the payment events you care about to DataFast. It gives you a Framework-agnostic core, automatically captures DataFast tracking cookies during checkout creation, and ships with Next.js and Express adapters included.
+Wraps the official `creem` Core SDK and forwards the payment events you care about to DataFast. It gives you a framework-agnostic core, automatically captures DataFast tracking cookies during checkout creation, and ships with Next.js and Express adapters included.
 
 ## What It Does
 
@@ -25,7 +25,7 @@ Connecting Creem payments to DataFast requires capturing visitor cookies at chec
 2. The package injects `datafast_visitor_id` and `datafast_session_id` into Creem metadata without dropping the rest of your metadata.
 3. Creem redirects the customer to `checkoutUrl`.
 4. Creem sends `checkout.completed`, `subscription.paid`, and `refund.created` webhooks back to your server.
-5. `handleWebhook()` verifies `creem-signature`, atomically claims the event id, maps the payload, and forwards the payment or refund to DataFast.
+5. `handleWebhook()` verifies `creem-signature`, deduplicates the event id, maps the payload, and forwards the payment or refund to DataFast.
 
 During checkout capture, both tracking ids are preserved in Creem metadata. During webhook forwarding, only `datafast_visitor_id` is sent to DataFast because the current DataFast payment API documents `datafast_visitor_id` but not `datafast_session_id`.
 
@@ -139,6 +139,40 @@ app.post(
 );
 ```
 
+## Quickstart Framework-Agnostic
+
+Use `handleWebhook()` directly when your framework is not Next.js or Express. You just need the raw request body as a string and the request headers.
+
+```ts
+import { createCreemDataFast, InvalidCreemSignatureError } from "creem-datafast";
+
+const creemDataFast = createCreemDataFast({
+  creemApiKey: process.env.CREEM_API_KEY!,
+  creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  datafastApiKey: process.env.DATAFAST_API_KEY!,
+  testMode: true
+});
+
+// Works with any framework: Hono, Fastify, Koa, Cloudflare Workers, etc.
+async function handleCreemWebhook(rawBody: string, headers: Record<string, string>) {
+  try {
+    const result = await creemDataFast.handleWebhook({ rawBody, headers });
+
+    if (result.ignored) {
+      return { status: 200, body: "Ignored" };
+    }
+
+    return { status: 200, body: "OK" };
+  } catch (error) {
+    if (error instanceof InvalidCreemSignatureError) {
+      return { status: 400, body: "Invalid signature" };
+    }
+
+    return { status: 500, body: "Internal error" };
+  }
+}
+```
+
 ## Client-Side Helper
 
 Use the browser helper when your checkout request originates from the browser and cookies are not automatically forwarded to your backend (e.g. cross-origin fetch calls). If your backend passes the incoming `{ request }` into `createCheckout()`, the server reads `datafast_visitor_id` and `datafast_session_id` from the request query string automatically. In same-origin setups the server-side cookie capture handles this automatically.
@@ -148,6 +182,9 @@ import { appendDataFastTracking, getDataFastTracking } from "creem-datafast/clie
 
 const tracking = getDataFastTracking();
 const checkoutEndpoint = appendDataFastTracking("/api/checkout", tracking);
+
+// Then use checkoutEndpoint as your fetch URL:
+const response = await fetch(checkoutEndpoint, { method: "POST" });
 ```
 
 Tracking precedence during checkout creation is:
@@ -266,9 +303,11 @@ Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/
 6. Open the example app, start a checkout, and complete a payment in Creem test mode.
 7. Expect the example server logs to show the payload forwarded to DataFast; the Next example also logs processed versus ignored webhook outcomes explicitly.
 
-## Production Idempotency
+## Idempotency
 
-By default no idempotency store is configured, so duplicate webhook deliveries are forwarded to DataFast every time. For production, pass a durable atomic store so deduplication survives process restarts and blocks concurrent deliveries across multiple instances.
+Out of the box, `handleWebhook()` deduplicates webhook deliveries using an in-process `MemoryIdempotencyStore`. This prevents double-counting revenue within a single server process without any extra configuration.
+
+For multi-instance production deployments (e.g. multiple serverless functions or horizontally scaled servers), pass a durable atomic store so deduplication survives process restarts and works across instances.
 
 See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for the atomic `IdempotencyStore` contract, a copy-paste Redis / Upstash recipe, TTL guidance, and how to wire it into `createCreemDataFast()`.
 
@@ -277,15 +316,23 @@ See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for the
 - Invalid webhook signature: make sure the handler reads the raw request body, not parsed JSON.
 - Missing `creem-signature` header: `verifyWebhookSignature()` and `handleWebhook()` throw `InvalidCreemSignatureError` because the request is malformed.
 - Missing visitor tracking: the checkout still works by default; enable `strictTracking` if you want the request to fail instead.
+- Double-counted revenue from DataFast: if you use the DataFast tracking script alongside server-side webhook forwarding, the same payment can be recorded twice — once by the script detecting URL parameters on the success page, and once by the webhook. Add `data-disable-payments="true"` to the DataFast script tag when using `creem-datafast` for server-side attribution.
 - Wrong amount format: Creem amounts are interpreted as minor units and converted into decimal major units before sending to DataFast.
 - Refund semantics: `refund.created` forwards the refunded amount as a new DataFast payment with `refunded: true` and uses the Creem refund id as `transaction_id`.
-- Duplicate forwards: pass a real atomic `idempotencyStore` in production if you need dedupe across processes and concurrent deliveries. See [`docs/production-idempotency.md`](./docs/production-idempotency.md).
+- Duplicate forwards: the built-in `MemoryIdempotencyStore` deduplicates within a single process. For multi-instance deployments, pass a durable atomic `idempotencyStore`. See [`docs/production-idempotency.md`](./docs/production-idempotency.md).
 - Slow or flaky DataFast responses: forwarding uses an `8000ms` timeout by default and retries only network errors, timeouts, and `408` / `429` / `5xx` responses.
 
 ## API Reference
 
 ```ts
-import { createCreemDataFast } from "creem-datafast";
+import {
+  createCreemDataFast,
+  CreemDataFastError,
+  DataFastRequestError,
+  InvalidCreemSignatureError,
+  MissingTrackingError,
+  MemoryIdempotencyStore
+} from "creem-datafast";
 import { createNextWebhookHandler } from "creem-datafast/next";
 import { createExpressWebhookHandler } from "creem-datafast/express";
 import { appendDataFastTracking, getDataFastTracking } from "creem-datafast/client";
@@ -297,6 +344,13 @@ Root API:
 - `client.createCheckout(params, context?)`
 - `client.handleWebhook({ rawBody, headers })`
 - `client.verifyWebhookSignature(rawBody, headers)` returns `true` or `false` for signature validity and throws `InvalidCreemSignatureError` when `creem-signature` is missing.
+
+Error classes:
+
+- `CreemDataFastError` — base class for all package errors.
+- `InvalidCreemSignatureError` — webhook signature is missing or invalid.
+- `MissingTrackingError` — thrown by `createCheckout()` when `strictTracking` is enabled and no `datafast_visitor_id` is found.
+- `DataFastRequestError` — DataFast API request failed. Exposes `.retryable`, `.status`, and `.requestId`.
 
 Subpaths:
 

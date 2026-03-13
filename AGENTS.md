@@ -10,7 +10,7 @@
 - `subscription.paid` should prefer hydrated transaction data from `last_transaction_id` and only fall back to `product.price` / `product.currency` if hydration fails.
 - Ignore `checkout.completed` when it clearly represents an initial subscription purchase (`order.type === "recurring"` or `object.subscription` present); let `subscription.paid` own payment attribution for that first charge.
 - Creem webhook payloads may send `object.customer` either as a hydrated object or as a string id; mapping code must preserve `customer_id` in both shapes.
-- The default idempotency behavior is intentionally minimal; production consumers should pass a real atomic `idempotencyStore` if they need dedupe across processes.
+- The default idempotency behavior uses an in-process `MemoryIdempotencyStore`; production consumers still need a real atomic `idempotencyStore` if they need dedupe across processes or restarts.
 - Production idempotency stores must implement atomic `claim` / `complete` / `release` semantics; never reintroduce split `has` / `set` checks around webhook forwarding.
 - Keep the root package export surface framework-agnostic and minimal; adapter/browser runtime APIs and their types belong on subpath entrypoints.
 - Runtime error classes that consumers are expected to branch on with `instanceof` should be exported from the root package.
@@ -23,6 +23,7 @@
 - Keep library CI separate from framework example CI when their Node requirements differ; `example-next` follows Next.js runtime minimums and should not dilute the root package's `node >=18` claim.
 - `example-next` should consume the root workspace package through its published `exports`, not `../src/*`; rebuild the root package before running the example after library changes.
 - Lightweight adapter demos should stay as small workspace apps: prefer `tsx` plus a tiny local `.env.local` loader over adding bundlers or `dotenv` when the example only needs to prove the integration shape.
+- Runnable server examples should keep `listen()` in a tiny entry file and export a reusable app factory so runtime integration tests can mount the real routes without side effects at import time.
 - If the package claims `node >=18`, keep the test runner on a Node-18-compatible major; `vitest` 4 requires Node 20+ and breaks the minimum-version CI job.
 - When `next build` updates `example-next/tsconfig.json` or `example-next/next-env.d.ts` with mandatory Next.js TypeScript settings, keep those generated changes so future builds stay clean.
 - Example-app CI may use placeholder env vars strictly to prove the app typechecks/builds; keep that documented so nobody reads the example job as a live integration check.
@@ -31,3 +32,4 @@
 - Distribution regressions are easiest to catch by installing the packed `.tgz` into an isolated consumer fixture; keep `pnpm smoke:consumer` aligned with the published exports and subpaths.
 - If the README documents a root-level import from `creem-datafast`, cover that symbol in the packaged smoke consumer so docs and published exports cannot drift silently.
 - Keep `datafast_session_id` capture limited to Creem metadata until DataFast documents payment API support for it; webhook payment payloads should continue forwarding only `datafast_visitor_id`.
+- If an example or integration uses the DataFast tracking script alongside server-side payment forwarding, set `data-disable-payments="true"` on the script tag or DataFast can record the same payment twice.
