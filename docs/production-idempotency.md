@@ -62,6 +62,15 @@ const redis = new Redis({
 export const redisIdempotencyStore = createUpstashIdempotencyStore(redis);
 ```
 
+If your runtime already exposes Upstash credentials in the standard environment variable names, you can use:
+
+```ts
+import { Redis } from "@upstash/redis";
+import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
+
+export const redisIdempotencyStore = createUpstashIdempotencyStore(Redis.fromEnv());
+```
+
 Pass it to `createCreemDataFast()`:
 
 ```ts

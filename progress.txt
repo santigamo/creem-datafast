@@ -20,6 +20,7 @@
 - Workspace examples should import the built root package through published `exports`; rebuild the root package before running the example after library changes.
 - Keep `creem-datafast` root exports limited to the framework-agnostic core; adapter/browser APIs and their types should stay on subpath entrypoints.
 - Provider-specific infrastructure helpers should live on responsibility-scoped subpaths with optional peer dependencies so the default install stays lightweight.
+- Packaged smoke fixtures for peer-backed subpaths should verify both runtime export presence and assignment to the documented public interface.
 - Runtime error classes that consumer code may branch on should be exported from the root package, not only from internal files.
 - Next.js-specific webhook conveniences belong in `creem-datafast/next`; if they accept `Request`, document clearly that they consume the body stream once.
 - Creem transaction hydration fixtures should use millisecond `createdAt` values to match the SDK and catch timestamp unit regressions.
@@ -367,4 +368,11 @@
 - **Learnings for future iterations:**
   - Optional third-party production helpers can stay inside the package when they are exposed from a narrow subpath and backed by an optional peer dependency.
   - If README recommends a non-root import, the packaged smoke consumer should import that exact subpath so docs and published exports cannot drift.
+---
+## 2026-03-13 17:52 CET - upstash-followups
+- Added `Redis.fromEnv()` documentation for the official Upstash helper, tightened the packaged smoke fixture so it proves `createUpstashIdempotencyStore()` is assignable to `IdempotencyStore`, and extended the Bun/Cloudflare smoke flows to exercise the helper with structural fake Redis clients.
+- Files changed: `README.md`, `docs/production-idempotency.md`, `tests/smoke/consumer-node/index.ts`, `tests/smoke/consumer-bun/runtime.mjs`, `scripts/smoke-cloudflare-worker.mjs`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - A peer-backed helper can preserve optional install ergonomics and still be smoke-tested in alternate runtimes by using structural fakes instead of importing the real provider client.
+  - README snippets should include the lowest-friction provider bootstrap path, such as `Redis.fromEnv()`, when the provider supports it directly.
 ---

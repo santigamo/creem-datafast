@@ -2,6 +2,7 @@ import {
   CreemDataFastError,
   type CreemDataFastOptions,
   type CreemSdkClientLike,
+  type IdempotencyStore,
   DataFastRequestError,
   InvalidCreemSignatureError,
   MemoryIdempotencyStore,
@@ -30,6 +31,15 @@ const options: CreemDataFastOptions = {
   datafastApiKey: "datafast_key"
 };
 
+const upstashStore: IdempotencyStore = createUpstashIdempotencyStore({
+  async del() {
+    return 1;
+  },
+  async set() {
+    return "OK";
+  }
+});
+
 void createCreemDataFast;
 void CreemDataFastError;
 void DataFastRequestError;
@@ -38,4 +48,5 @@ void MemoryIdempotencyStore;
 void MissingTrackingError;
 void Redis;
 void createUpstashIdempotencyStore;
+void upstashStore;
 void options;

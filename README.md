@@ -9,6 +9,7 @@ Connect Creem payments to DataFast analytics without writing any glue code. One 
 - **Zero glue code** — one factory call wires up checkout attribution and webhook forwarding
 - **Framework adapters** — Next.js App Router and Express 5 out of the box, or bring your own
 - **Production-ready** — idempotent webhooks, retries with backoff, Web Crypto signature verification
+- **Official Upstash adapter** — ready-made distributed idempotency for serverless and multi-instance deployments
 - **Refund support** — forwards `refund.created` as `refunded: true` payment events
 - **Currency-aware** — correctly converts zero-decimal (JPY) and three-decimal (KWD) currencies
 
@@ -367,6 +368,15 @@ export const creemDataFast = createCreemDataFast({
 ```
 
 Use a shared atomic store like this for Vercel, Railway, Render, AWS Lambda, or any horizontally scaled deployment where the same webhook may reach more than one process.
+
+If your platform already injects Upstash env vars, `Redis.fromEnv()` works too:
+
+```ts
+import { Redis } from "@upstash/redis";
+import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
+
+const idempotencyStore = createUpstashIdempotencyStore(Redis.fromEnv());
+```
 
 See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for the `IdempotencyStore` contract, TTL guidance, the official Upstash helper, and how to implement a custom store.
 

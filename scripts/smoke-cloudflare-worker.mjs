@@ -12,9 +12,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 const distEntry = path.join(repoRoot, "dist", "index.js");
+const distUpstashEntry = path.join(repoRoot, "dist", "idempotency", "upstash.js");
 
 if (!existsSync(distEntry)) {
   throw new Error("Missing dist/index.js. Run `pnpm build` before `pnpm smoke:cloudflare-worker`.");
+}
+
+if (!existsSync(distUpstashEntry)) {
+  throw new Error(
+    "Missing dist/idempotency/upstash.js. Run `pnpm build` before `pnpm smoke:cloudflare-worker`."
+  );
 }
 
 const checkoutCompletedPayload = {
@@ -47,10 +54,12 @@ const workerBundlePath = path.join(tempDir, "worker-bundle.mjs");
 
 const workerScript = `
 import { createCreemDataFast } from ${JSON.stringify(distEntry)};
+import { createUpstashIdempotencyStore } from ${JSON.stringify(distUpstashEntry)};
 
 export default {
   async fetch(request) {
     let forwardedPayload;
+    const idempotencyValues = new Map();
 
     const client = createCreemDataFast({
       creemClient: {
@@ -76,6 +85,20 @@ export default {
       },
       creemWebhookSecret: "cloudflare_worker_secret",
       datafastApiKey: "datafast_key",
+      idempotencyStore: createUpstashIdempotencyStore({
+        async del(key) {
+          idempotencyValues.delete(key);
+          return 1;
+        },
+        async set(key, value, options = {}) {
+          if (options.nx && idempotencyValues.has(key)) {
+            return null;
+          }
+
+          idempotencyValues.set(key, value);
+          return "OK";
+        }
+      }),
       fetch: async (_input, init) => {
         forwardedPayload = JSON.parse(init.body);
         return new Response(JSON.stringify({ ok: true }), {
@@ -115,6 +138,7 @@ export default {
     return Response.json({
       checkoutUrl: checkout.checkoutUrl,
       injectedVisitorId: checkout.finalMetadata.datafast_visitor_id,
+      idempotencyStatus: idempotencyValues.get("creem:event:evt_cloudflare_checkout"),
       isValid,
       webhookIgnored: webhookResult.ignored,
       forwardedPayload
@@ -162,6 +186,7 @@ try {
 
   const body = await response.json();
   assert.equal(body.isValid, true);
+  assert.equal(body.idempotencyStatus, "processed");
   assert.equal(body.injectedVisitorId, "visitor_from_cookie");
   assert.equal(body.checkoutUrl, "https://creem.test/checkout/worker");
   assert.equal(body.webhookIgnored, false);

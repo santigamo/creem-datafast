@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 
 import { createCreemDataFast } from "creem-datafast";
+import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
 
 const webhookSecret = "bun_smoke_secret";
 
@@ -32,6 +33,22 @@ const webhookPayload = {
 
 const rawBody = JSON.stringify(webhookPayload);
 let forwardedPayload;
+const idempotencyValues = new Map();
+
+const idempotencyStore = createUpstashIdempotencyStore({
+  async del(key) {
+    idempotencyValues.delete(key);
+    return 1;
+  },
+  async set(key, value, options = {}) {
+    if (options.nx && idempotencyValues.has(key)) {
+      return null;
+    }
+
+    idempotencyValues.set(key, value);
+    return "OK";
+  }
+});
 
 const client = createCreemDataFast({
   creemClient: {
@@ -57,6 +74,7 @@ const client = createCreemDataFast({
   },
   creemWebhookSecret: webhookSecret,
   datafastApiKey: "datafast_key",
+  idempotencyStore,
   fetch: async (_input, init) => {
     forwardedPayload = JSON.parse(String(init?.body));
     return new Response(JSON.stringify({ ok: true }), {
@@ -106,3 +124,4 @@ assert.deepEqual(forwardedPayload, {
   renewal: false,
   transaction_id: "order_bun"
 });
+assert.equal(idempotencyValues.get("creem:event:evt_bun_checkout"), "processed");
