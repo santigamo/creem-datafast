@@ -21,6 +21,7 @@
 - Lightweight adapter demos can stay as small TypeScript workspaces run with `tsx` plus a local `.env.local` loader; avoid pulling in bundlers or `dotenv` unless the example truly needs them.
 - Test tooling must also honor the package Node floor; if CI validates Node 18, keep `vitest` on a major that still supports Node 18.
 - Keep GitHub Actions core actions updated when GitHub deprecates their runner Node version, or CI will stay green but accumulate avoidable platform warnings.
+- Production webhook dedupe must use atomic `claim` / `complete` / `release` semantics; split `has` / `set` checks are race-prone under concurrent deliveries.
 
 ## 2026-03-12 18:45 - setup
 - Initialized the `creem-datafast` package from scratch with strict TypeScript, `tsup`, `vitest`, and a pnpm workspace for the example app.
@@ -281,4 +282,13 @@
 - **Learnings for future iterations:**
   - Public API regressions can hide when smoke tests cover only some exports; include every README-documented root import in the packaged consumer fixture.
   - If consumer code is expected to catch a runtime error with `instanceof`, export that error from the root package instead of relying on internal paths.
+---
+## 2026-03-13 15:27 CET - atomic-webhook-idempotency
+- Replaced the webhook idempotency contract with atomic `claim` / `complete` / `release` semantics, split the TTL options into in-flight versus processed windows, and updated the webhook flow to claim before processing, release on failed processing, and complete on terminal outcomes.
+- Added regression coverage for concurrent duplicate deliveries, release-after-failure retries, delegated initial subscription checkouts staying completed, and a direct unit test suite for the in-memory store semantics.
+- Updated the production idempotency docs and README so the Redis / Upstash recipe uses atomic `SET ... NX EX` claims and the public guidance reflects the new two-TTL configuration.
+- Files changed: `src/core/types.ts`, `src/core/idempotency.ts`, `src/core/webhook.ts`, `src/index.ts`, `tests/unit/webhook.test.ts`, `tests/unit/idempotency.test.ts`, `docs/production-idempotency.md`, `README.md`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - Releasing the idempotency key is only safe before the DataFast forward succeeds; after a successful send, a failed `complete()` should not be translated into an immediate release or retries may double-forward revenue.
+  - Docs for production idempotency must prescribe atomic reservation semantics explicitly, otherwise consumers will naturally implement unsafe `exists`-then-`set` recipes.
 ---

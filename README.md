@@ -25,7 +25,7 @@ Connecting Creem payments to DataFast requires capturing visitor cookies at chec
 2. The package injects `datafast_visitor_id` and `datafast_session_id` into Creem metadata without dropping the rest of your metadata.
 3. Creem redirects the customer to `checkoutUrl`.
 4. Creem sends `checkout.completed`, `subscription.paid`, and `refund.created` webhooks back to your server.
-5. `handleWebhook()` verifies `creem-signature`, deduplicates by event id, maps the payload, and forwards the payment or refund to DataFast.
+5. `handleWebhook()` verifies `creem-signature`, atomically claims the event id, maps the payload, and forwards the payment or refund to DataFast.
 
 During checkout capture, both tracking ids are preserved in Creem metadata. During webhook forwarding, only `datafast_visitor_id` is sent to DataFast because the current DataFast payment API documents `datafast_visitor_id` but not `datafast_session_id`.
 
@@ -268,9 +268,9 @@ Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/
 
 ## Production Idempotency
 
-By default no idempotency store is configured, so duplicate webhook deliveries are forwarded to DataFast every time. For production, pass a durable store so deduplication survives process restarts and works across multiple instances.
+By default no idempotency store is configured, so duplicate webhook deliveries are forwarded to DataFast every time. For production, pass a durable atomic store so deduplication survives process restarts and blocks concurrent deliveries across multiple instances.
 
-See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for a copy-paste Redis / Upstash recipe, TTL guidance, and how to wire it into `createCreemDataFast()`.
+See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for the atomic `IdempotencyStore` contract, a copy-paste Redis / Upstash recipe, TTL guidance, and how to wire it into `createCreemDataFast()`.
 
 ## Troubleshooting
 
@@ -279,7 +279,7 @@ See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for a c
 - Missing visitor tracking: the checkout still works by default; enable `strictTracking` if you want the request to fail instead.
 - Wrong amount format: Creem amounts are interpreted as minor units and converted into decimal major units before sending to DataFast.
 - Refund semantics: `refund.created` forwards the refunded amount as a new DataFast payment with `refunded: true` and uses the Creem refund id as `transaction_id`.
-- Duplicate forwards: pass a real `idempotencyStore` in production if you need dedupe across processes. See [`docs/production-idempotency.md`](./docs/production-idempotency.md).
+- Duplicate forwards: pass a real atomic `idempotencyStore` in production if you need dedupe across processes and concurrent deliveries. See [`docs/production-idempotency.md`](./docs/production-idempotency.md).
 - Slow or flaky DataFast responses: forwarding uses an `8000ms` timeout by default and retries only network errors, timeouts, and `408` / `429` / `5xx` responses.
 
 ## API Reference

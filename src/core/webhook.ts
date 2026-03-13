@@ -1,5 +1,5 @@
 import { InvalidCreemSignatureError, UnsupportedWebhookEventError } from "./errors.js";
-import { markEventProcessed, resolveIdempotencyStore, shouldProcessEvent } from "./idempotency.js";
+import { claimEvent, completeEvent, releaseEvent, resolveIdempotencyStore } from "./idempotency.js";
 import {
   mapCheckoutCompletedToPayment,
   mapRefundCreatedToPayment,
@@ -9,6 +9,7 @@ import { extractHeader, verifyCreemSignature } from "./signature.js";
 import { hydrateTransaction } from "./transaction.js";
 import type {
   CheckoutCompletedEvent,
+  DataFastPaymentPayload,
   HandleWebhookParams,
   HandleWebhookResult,
   RefundCreatedEvent,
@@ -81,7 +82,11 @@ export async function handleWebhook(
   }
 
   const idempotencyStore = resolveIdempotencyStore(dependencies.idempotencyStore);
-  const canProcess = await shouldProcessEvent(eventId, idempotencyStore);
+  const canProcess = await claimEvent(
+    eventId,
+    idempotencyStore,
+    dependencies.idempotencyInFlightTtlSeconds
+  );
   if (!canProcess) {
     return {
       ok: true,
@@ -96,6 +101,11 @@ export async function handleWebhook(
     eventType === "checkout.completed"
     && isInitialSubscriptionCheckout(payload as CheckoutCompletedEvent)
   ) {
+    await completeEvent(
+      eventId,
+      idempotencyStore,
+      dependencies.idempotencyProcessedTtlSeconds
+    );
     return {
       ok: true,
       ignored: true,
@@ -105,38 +115,47 @@ export async function handleWebhook(
     };
   }
 
-  const normalizedPayload = eventType === "checkout.completed"
-    ? mapCheckoutCompletedToPayment(payload as CheckoutCompletedEvent)
-    : eventType === "refund.created"
-      ? mapRefundCreatedToPayment(payload as RefundCreatedEvent)
-      : await (async () => {
-        const subscriptionPayload = payload as SubscriptionPaidEvent;
-        const lastTransactionId = subscriptionPayload.object?.last_transaction_id
-          ?? subscriptionPayload.object?.lastTransactionId;
+  let normalizedPayload: DataFastPaymentPayload;
+  let datafastResponse: unknown;
 
-        if (
-          dependencies.hydrateTransactionOnSubscriptionPaid &&
-          lastTransactionId
-        ) {
-          try {
-            const transaction = await hydrateTransaction(dependencies.creem, lastTransactionId);
-            return mapSubscriptionPaidToPayment(subscriptionPayload, transaction);
-          } catch (error) {
-            dependencies.logger.warn("Falling back to subscription product pricing after transaction hydration failure.", {
-              error,
-              lastTransactionId
-            });
+  try {
+    normalizedPayload = eventType === "checkout.completed"
+      ? mapCheckoutCompletedToPayment(payload as CheckoutCompletedEvent)
+      : eventType === "refund.created"
+        ? mapRefundCreatedToPayment(payload as RefundCreatedEvent)
+        : await (async () => {
+          const subscriptionPayload = payload as SubscriptionPaidEvent;
+          const lastTransactionId = subscriptionPayload.object?.last_transaction_id
+            ?? subscriptionPayload.object?.lastTransactionId;
+
+          if (
+            dependencies.hydrateTransactionOnSubscriptionPaid &&
+            lastTransactionId
+          ) {
+            try {
+              const transaction = await hydrateTransaction(dependencies.creem, lastTransactionId);
+              return mapSubscriptionPaidToPayment(subscriptionPayload, transaction);
+            } catch (error) {
+              dependencies.logger.warn("Falling back to subscription product pricing after transaction hydration failure.", {
+                error,
+                lastTransactionId
+              });
+            }
           }
-        }
 
-        return mapSubscriptionPaidToPayment(subscriptionPayload);
-      })();
+          return mapSubscriptionPaidToPayment(subscriptionPayload);
+        })();
 
-  const datafastResponse = await dependencies.datafast.sendPayment(normalizedPayload);
-  await markEventProcessed(
+    datafastResponse = await dependencies.datafast.sendPayment(normalizedPayload);
+  } catch (error) {
+    await releaseEvent(eventId, idempotencyStore);
+    throw error;
+  }
+
+  await completeEvent(
     eventId,
     idempotencyStore,
-    dependencies.idempotencyTtlSeconds
+    dependencies.idempotencyProcessedTtlSeconds
   );
 
   return {

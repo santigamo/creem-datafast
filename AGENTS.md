@@ -10,7 +10,8 @@
 - `subscription.paid` should prefer hydrated transaction data from `last_transaction_id` and only fall back to `product.price` / `product.currency` if hydration fails.
 - Ignore `checkout.completed` when it clearly represents an initial subscription purchase (`order.type === "recurring"` or `object.subscription` present); let `subscription.paid` own payment attribution for that first charge.
 - Creem webhook payloads may send `object.customer` either as a hydrated object or as a string id; mapping code must preserve `customer_id` in both shapes.
-- The default idempotency behavior is intentionally minimal; production consumers should pass a real `idempotencyStore` if they need dedupe across processes.
+- The default idempotency behavior is intentionally minimal; production consumers should pass a real atomic `idempotencyStore` if they need dedupe across processes.
+- Production idempotency stores must implement atomic `claim` / `complete` / `release` semantics; never reintroduce split `has` / `set` checks around webhook forwarding.
 - Keep the root package export surface framework-agnostic and minimal; adapter/browser runtime APIs and their types belong on subpath entrypoints.
 - Runtime error classes that consumers are expected to branch on with `instanceof` should be exported from the root package.
 - The published package is ESM-only; keep README compatibility notes and package exports aligned so consumers do not assume `require()` support.

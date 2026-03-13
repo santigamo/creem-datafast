@@ -1,6 +1,6 @@
 # Production Idempotency
 
-By default no idempotency store is configured, so duplicate webhook deliveries are forwarded to DataFast every time. For production, pass a durable store so deduplication survives process restarts and works across multiple instances.
+By default no idempotency store is configured, so duplicate webhook deliveries are forwarded to DataFast every time. For production, pass a durable atomic store so deduplication survives process restarts and blocks concurrent deliveries across multiple instances.
 
 ## Interface
 
@@ -8,28 +8,35 @@ This is the interface that `creem-datafast` expects:
 
 ```ts
 interface IdempotencyStore {
-  has(key: string): Promise<boolean>;
-  set(key: string, ttlSeconds?: number): Promise<void>;
+  claim(key: string, ttlSeconds?: number): Promise<boolean>;
+  complete(key: string, ttlSeconds?: number): Promise<void>;
+  release(key: string): Promise<void>;
 }
 ```
 
-## Recommended TTL
+`claim()` must be atomic. Two simultaneous deliveries of the same event must not both return `true`.
 
-Use `86400` seconds (24 hours) unless you know Creem can retry longer in your setup.
+## Recommended TTLs
 
-- It covers the normal webhook retry window.
-- The keys are lightweight, so keeping them for a full day is cheap.
-- Shorter TTLs increase the chance that a late retry gets forwarded twice.
+Use:
 
-## Why The Store Must Be Durable
+- `idempotencyInFlightTtlSeconds: 300`
+- `idempotencyProcessedTtlSeconds: 86400`
+
+The short in-flight TTL prevents a stuck worker from blocking retries forever. The longer processed TTL covers normal webhook retry windows after a successful forward.
+
+## Why The Store Must Be Durable And Atomic
 
 An in-memory `Map` only works inside one process. It resets on deploy, crashes, or autoscaling events, so the same webhook can be forwarded again.
+
+A non-atomic `has()` / `set()` sequence is also unsafe: two workers can both observe "missing", both forward to DataFast, and only then persist the key.
 
 Use a durable shared store such as Redis so:
 
 - dedupe survives restarts and deploys
 - dedupe works across multiple server instances
-- late webhook retries still hit the same seen-event set
+- concurrent deliveries cannot both claim the same event
+- late webhook retries still hit the same processed-event set
 
 `creem-datafast` stores keys as `creem:event:{eventId}`.
 
@@ -53,11 +60,18 @@ const redis = new Redis({
 });
 
 export const redisIdempotencyStore: IdempotencyStore = {
-  async has(key) {
-    return (await redis.exists(key)) === 1;
+  async claim(key, ttlSeconds = 300) {
+    const result = await redis.set(key, "processing", {
+      ex: ttlSeconds,
+      nx: true
+    });
+    return result === "OK";
   },
-  async set(key, ttlSeconds = 86400) {
-    await redis.set(key, "1", { ex: ttlSeconds });
+  async complete(key, ttlSeconds = 86400) {
+    await redis.set(key, "processed", { ex: ttlSeconds });
+  },
+  async release(key) {
+    await redis.del(key);
   }
 };
 ```
@@ -73,9 +87,11 @@ export const creemDataFast = createCreemDataFast({
   creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
   datafastApiKey: process.env.DATAFAST_API_KEY!,
   idempotencyStore: redisIdempotencyStore,
-  // optional — defaults to 86400 (24 h)
-  idempotencyTtlSeconds: 86400
+  // optional — defaults to 300 seconds
+  idempotencyInFlightTtlSeconds: 300,
+  // optional — defaults to 86400 seconds (24 h)
+  idempotencyProcessedTtlSeconds: 86400
 });
 ```
 
-This is enough to get persistent webhook dedupe without designing your own storage contract.
+If webhook processing fails before the DataFast forward completes, the package calls `release()` so a retry can claim the event again. After a successful forward, it calls `complete()` so later duplicates are ignored for the full processed TTL.

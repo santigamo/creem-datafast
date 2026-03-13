@@ -15,22 +15,26 @@ const webhookSecret = "creem_webhook_secret";
 class TestMemoryIdempotencyStore implements IdempotencyStore {
   private readonly values = new Map<string, number>();
 
-  async has(key: string): Promise<boolean> {
+  async claim(key: string, ttlSeconds = 300): Promise<boolean> {
     const expiresAt = this.values.get(key);
-    if (expiresAt === undefined) {
+    if (expiresAt !== undefined && Date.now() <= expiresAt) {
       return false;
     }
 
-    if (Date.now() > expiresAt) {
+    if (expiresAt !== undefined && Date.now() > expiresAt) {
       this.values.delete(key);
-      return false;
     }
 
+    this.values.set(key, Date.now() + ttlSeconds * 1000);
     return true;
   }
 
-  async set(key: string, ttlSeconds = 86400): Promise<void> {
+  async complete(key: string, ttlSeconds = 86400): Promise<void> {
     this.values.set(key, Date.now() + ttlSeconds * 1000);
+  }
+
+  async release(key: string): Promise<void> {
+    this.values.delete(key);
   }
 }
 
@@ -68,7 +72,8 @@ function createDependencies(overrides?: {
     },
     hydrateTransactionOnSubscriptionPaid: true,
     idempotencyStore: overrides?.idempotencyStore ?? new TestMemoryIdempotencyStore(),
-    idempotencyTtlSeconds: 3600,
+    idempotencyInFlightTtlSeconds: 60,
+    idempotencyProcessedTtlSeconds: 3600,
     logger: noopLogger
   };
 }
@@ -91,7 +96,7 @@ describe("handleWebhook", () => {
 
   it("ignores duplicate events", async () => {
     const store = new TestMemoryIdempotencyStore();
-    await store.set("creem:event:evt_duplicate", 3600);
+    await store.complete("creem:event:evt_duplicate", 3600);
 
     const result = await handleWebhook(createParams({
       ...checkoutCompletedFixture,
@@ -175,10 +180,11 @@ describe("handleWebhook", () => {
     expect(sendPayment).not.toHaveBeenCalled();
   });
 
-  it("marks events as processed after a successful send", async () => {
+  it("marks successful events as processed", async () => {
     const store = new TestMemoryIdempotencyStore();
+    const params = createParams(checkoutCompletedFixture);
 
-    const result = await handleWebhook(createParams(checkoutCompletedFixture), createDependencies({
+    const result = await handleWebhook(params, createDependencies({
       datafast: {
         sendPayment: vi.fn(async () => ({ ok: true }))
       },
@@ -186,7 +192,106 @@ describe("handleWebhook", () => {
     }));
 
     expect(result.ignored).toBe(false);
-    expect(await store.has("creem:event:evt_checkout_completed_123")).toBe(true);
+    await expect(handleWebhook(params, createDependencies({
+      datafast: {
+        sendPayment: vi.fn(async () => ({ ok: true }))
+      },
+      idempotencyStore: store
+    }))).resolves.toEqual({
+      eventId: "evt_checkout_completed_123",
+      eventType: "checkout.completed",
+      ignored: true,
+      ok: true,
+      reason: "duplicate_event"
+    });
+  });
+
+  it("processes only one concurrent delivery for the same event", async () => {
+    const store = new TestMemoryIdempotencyStore();
+    const sendPayment = vi.fn(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      return { ok: true };
+    });
+    const params = createParams(checkoutCompletedFixture);
+    const dependencies = createDependencies({
+      datafast: {
+        sendPayment
+      },
+      idempotencyStore: store
+    });
+
+    const results = await Promise.all([
+      handleWebhook(params, dependencies),
+      handleWebhook(params, dependencies)
+    ]);
+
+    expect(sendPayment).toHaveBeenCalledTimes(1);
+    expect(results.filter((result) => !result.ignored)).toHaveLength(1);
+    expect(results.filter((result) => result.ignored && result.reason === "duplicate_event")).toHaveLength(1);
+  });
+
+  it("releases the in-flight claim after a failed DataFast send", async () => {
+    const store = new TestMemoryIdempotencyStore();
+    const sendPayment = vi.fn()
+      .mockRejectedValueOnce(new Error("DataFast failed"))
+      .mockResolvedValueOnce({ ok: true });
+    const params = createParams(checkoutCompletedFixture);
+    const dependencies = createDependencies({
+      datafast: {
+        sendPayment
+      },
+      idempotencyStore: store
+    });
+
+    await expect(handleWebhook(params, dependencies)).rejects.toThrow("DataFast failed");
+
+    const retryResult = await handleWebhook(params, dependencies);
+
+    expect(sendPayment).toHaveBeenCalledTimes(2);
+    expect(retryResult.ignored).toBe(false);
+  });
+
+  it("completes delegated initial subscription checkouts so later duplicates stay ignored", async () => {
+    const store = new TestMemoryIdempotencyStore();
+    const sendPayment = vi.fn();
+    const params = createParams({
+      ...checkoutCompletedFixture,
+      object: {
+        ...checkoutCompletedFixture.object,
+        order: {
+          ...checkoutCompletedFixture.object.order,
+          type: "recurring"
+        },
+        subscription: {
+          id: "sub_123"
+        }
+      }
+    });
+    const dependencies = createDependencies({
+      datafast: {
+        sendPayment
+      },
+      idempotencyStore: store
+    });
+
+    const firstResult = await handleWebhook(params, dependencies);
+    const secondResult = await handleWebhook(params, dependencies);
+
+    expect(firstResult).toEqual({
+      eventId: "evt_checkout_completed_123",
+      eventType: "checkout.completed",
+      ignored: true,
+      ok: true,
+      reason: "delegated_to_subscription_paid"
+    });
+    expect(secondResult).toEqual({
+      eventId: "evt_checkout_completed_123",
+      eventType: "checkout.completed",
+      ignored: true,
+      ok: true,
+      reason: "duplicate_event"
+    });
+    expect(sendPayment).not.toHaveBeenCalled();
   });
 
   it("hydrates subscription.paid transactions when available", async () => {

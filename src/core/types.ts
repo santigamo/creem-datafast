@@ -14,8 +14,9 @@ export interface LoggerLike {
 }
 
 export interface IdempotencyStore {
-  has(key: string): Promise<boolean>;
-  set(key: string, ttlSeconds?: number): Promise<void>;
+  claim(key: string, ttlSeconds?: number): Promise<boolean>;
+  complete(key: string, ttlSeconds?: number): Promise<void>;
+  release(key: string): Promise<void>;
 }
 
 export type HeadersLike =
@@ -162,7 +163,8 @@ export interface CreemDataFastOptions {
   captureSessionId?: boolean;
   hydrateTransactionOnSubscriptionPaid?: boolean;
   strictTracking?: boolean;
-  idempotencyTtlSeconds?: number;
+  idempotencyInFlightTtlSeconds?: number;
+  idempotencyProcessedTtlSeconds?: number;
   logger?: LoggerLike;
   idempotencyStore?: IdempotencyStore;
   timeoutMs?: number;
@@ -366,7 +368,8 @@ export interface WebhookHandlerDependencies {
   datafast: InternalDataFastClient;
   creem: InternalCreemClient;
   idempotencyStore?: IdempotencyStore;
-  idempotencyTtlSeconds: number;
+  idempotencyInFlightTtlSeconds: number;
+  idempotencyProcessedTtlSeconds: number;
   hydrateTransactionOnSubscriptionPaid: boolean;
   logger: LoggerLike;
 }

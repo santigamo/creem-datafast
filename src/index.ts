@@ -49,7 +49,8 @@ export function createCreemDataFast(
   const captureSessionId = options.captureSessionId ?? true;
   const strictTracking = options.strictTracking ?? false;
   const hydrateTransactionOnSubscriptionPaid = options.hydrateTransactionOnSubscriptionPaid ?? true;
-  const idempotencyTtlSeconds = options.idempotencyTtlSeconds ?? 86400;
+  const idempotencyInFlightTtlSeconds = options.idempotencyInFlightTtlSeconds ?? 300;
+  const idempotencyProcessedTtlSeconds = options.idempotencyProcessedTtlSeconds ?? 86400;
 
   return {
     createCheckout(params, context) {
@@ -66,7 +67,8 @@ export function createCreemDataFast(
         datafast,
         creem,
         idempotencyStore: options.idempotencyStore,
-        idempotencyTtlSeconds,
+        idempotencyInFlightTtlSeconds,
+        idempotencyProcessedTtlSeconds,
         hydrateTransactionOnSubscriptionPaid,
         logger
       });
