@@ -21,6 +21,23 @@ Connecting Creem payments to DataFast requires capturing visitor cookies at chec
 
 ## How The Flow Works
 
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant S as Your Server
+    participant C as Creem
+    participant D as DataFast
+
+    B->>S: POST /api/checkout (cookies)
+    Note right of S: reads datafast_visitor_id<br/>injects into metadata
+    S->>C: createCheckout()
+    C-->>B: redirect to checkoutUrl
+    B->>C: completes payment
+    C->>S: webhook (checkout.completed)
+    Note right of S: verifies signature<br/>deduplicates event<br/>maps payload
+    S->>D: POST /api/v1/payments
+```
+
 1. Your backend calls `createCheckout()` with the incoming `Request` or cookie header.
 2. The package injects `datafast_visitor_id` and `datafast_session_id` into Creem metadata without dropping the rest of your metadata.
 3. Creem redirects the customer to `checkoutUrl`.
