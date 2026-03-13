@@ -147,6 +147,15 @@
   - Example-app logs are more useful as teaching material when unexpected failures log stable fields like error name and message instead of raw thrown objects.
   - Regression suite names should describe the contract they are protecting, especially when the goal is to prevent docs/examples drift.
 ---
+## 2026-03-13 15:10 CET - checkout-cookieheader-hybrid-fallback
+- Fixed `createCheckout()` cookie capture so `cookieHeader` remains a real fallback even when `context.request` exists, while preserving the documented global tracking precedence.
+- Added checkout regressions for absent request cookies, per-field fallback between request cookies and `cookieHeader`, request-cookie precedence over fallback cookies, and query params continuing to beat both cookie sources.
+- Clarified the README and agent notes so the cookie-layer precedence is explicit.
+- Files changed: `src/core/checkout.ts`, `tests/unit/checkout.test.ts`, `README.md`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Hybrid integrations may need both `request` context and a manual `cookieHeader`; treat those cookie sources as complementary instead of mutually exclusive.
+  - Keep checkout precedence tests focused on per-field behavior so partial tracking from different sources does not regress silently.
+---
 ## 2026-03-12 22:12 - checkout-error-taxonomy
 - Corrected checkout response validation to throw `CreemDataFastError` instead of `MissingTrackingError` when the Creem SDK returns an invalid response, and added a regression test for that contract.
 - Files changed: `src/core/checkout.ts`, `tests/unit/checkout.test.ts`, `AGENTS.md`

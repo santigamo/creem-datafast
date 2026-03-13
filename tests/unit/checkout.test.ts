@@ -61,6 +61,75 @@ describe("createCheckout", () => {
     expect(result.injectedTracking.visitorId).toBe("visitor_cookie");
   });
 
+  it("uses cookieHeader when request cookies are absent", async () => {
+    const result = await createCheckout({
+      productId: "prod_123",
+      successUrl: "https://example.com/success"
+    }, {
+      cookieHeader: "datafast_visitor_id=visitor_cookie",
+      request: {
+        headers: {}
+      }
+    }, {
+      captureSessionId: true,
+      creem,
+      logger: noopLogger,
+      strictTracking: false
+    });
+
+    expect(result.injectedTracking).toEqual({
+      visitorId: "visitor_cookie"
+    });
+  });
+
+  it("fills missing request cookie fields from cookieHeader", async () => {
+    const result = await createCheckout({
+      productId: "prod_123",
+      successUrl: "https://example.com/success"
+    }, {
+      cookieHeader: "datafast_visitor_id=visitor_cookie",
+      request: {
+        headers: {
+          cookie: "datafast_session_id=session_cookie"
+        }
+      }
+    }, {
+      captureSessionId: true,
+      creem,
+      logger: noopLogger,
+      strictTracking: false
+    });
+
+    expect(result.injectedTracking).toEqual({
+      sessionId: "session_cookie",
+      visitorId: "visitor_cookie"
+    });
+  });
+
+  it("keeps request cookie values over cookieHeader", async () => {
+    const result = await createCheckout({
+      productId: "prod_123",
+      successUrl: "https://example.com/success"
+    }, {
+      cookieHeader: "datafast_visitor_id=visitor_fallback; datafast_session_id=session_fallback",
+      request: {
+        headers: {
+          cookie: "datafast_visitor_id=visitor_request; datafast_session_id=session_request"
+        }
+      }
+    }, {
+      captureSessionId: true,
+      creem,
+      logger: noopLogger,
+      strictTracking: false
+    });
+
+    expect(result.injectedTracking).toEqual({
+      sessionId: "session_request",
+      visitorId: "visitor_request"
+    });
+  });
+
   it("uses query params from request.url when cookies are missing", async () => {
     const result = await createCheckout({
       productId: "prod_123",
@@ -69,6 +138,31 @@ describe("createCheckout", () => {
       request: {
         headers: {},
         url: "https://example.com/api/checkout?datafast_visitor_id=visitor_query&datafast_session_id=session_query"
+      }
+    }, {
+      captureSessionId: true,
+      creem,
+      logger: noopLogger,
+      strictTracking: false
+    });
+
+    expect(result.injectedTracking).toEqual({
+      sessionId: "session_query",
+      visitorId: "visitor_query"
+    });
+  });
+
+  it("keeps query params above request cookies and cookieHeader", async () => {
+    const result = await createCheckout({
+      productId: "prod_123",
+      successUrl: "https://example.com/success"
+    }, {
+      cookieHeader: "datafast_visitor_id=visitor_fallback",
+      request: {
+        headers: {
+          cookie: "datafast_visitor_id=visitor_request; datafast_session_id=session_request"
+        },
+        url: "/api/checkout?datafast_visitor_id=visitor_query&datafast_session_id=session_query"
       }
     }, {
       captureSessionId: true,

@@ -155,7 +155,7 @@ Tracking precedence during checkout creation is:
 1. `params.tracking`
 2. `params.metadata.datafast_*`
 3. `request.url` query params
-4. cookies from `request.headers.cookie` or `cookieHeader`
+4. cookies, using `request.headers.cookie` first and `cookieHeader` only to fill missing tracking fields
 
 Only `datafast_visitor_id` is forwarded in webhook payment payloads today. `datafast_session_id` is still worth capturing because it is stored in Creem metadata and can be forwarded later if DataFast adds documented support for it in the payment API.
 

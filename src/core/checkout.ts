@@ -35,12 +35,16 @@ function resolveTracking(
   };
 }
 
-function resolveCookieHeader(context?: CreateCheckoutContext): string | undefined {
-  if (context?.request) {
-    return getHeaderValue(context.request.headers, "cookie");
-  }
+function resolveCookieTracking(context?: CreateCheckoutContext): DataFastTracking {
+  const requestCookieTracking = readTrackingFromCookieHeader(
+    context?.request ? getHeaderValue(context.request.headers, "cookie") : undefined
+  );
+  const fallbackCookieTracking = readTrackingFromCookieHeader(context?.cookieHeader);
 
-  return context?.cookieHeader;
+  return {
+    visitorId: requestCookieTracking.visitorId ?? fallbackCookieTracking.visitorId,
+    sessionId: requestCookieTracking.sessionId ?? fallbackCookieTracking.sessionId
+  };
 }
 
 function readTrackingFromRequestUrl(request?: CreateCheckoutContext["request"]): DataFastTracking {
@@ -65,8 +69,7 @@ export async function createCheckout(
   context: CreateCheckoutContext | undefined,
   dependencies: CheckoutDependencies
 ): Promise<CreateCheckoutResult> {
-  const cookieHeader = resolveCookieHeader(context);
-  const cookieTracking = readTrackingFromCookieHeader(cookieHeader);
+  const cookieTracking = resolveCookieTracking(context);
   const metadataTracking = readTrackingFromMetadata(params.metadata);
   const queryTracking = readTrackingFromRequestUrl(context?.request);
   const tracking = resolveTracking(
