@@ -22,7 +22,8 @@ function getRequiredEnv(name: string): string {
 
 function createDevFetch(baseFetch: typeof fetch): typeof fetch {
   return async (input, init) => {
-    const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+    const url =
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     if (process.env.NODE_ENV !== "production" && url === DATAFAST_URL) {
       console.info("[example-next] forwarding payload to DataFast", init?.body);
     }

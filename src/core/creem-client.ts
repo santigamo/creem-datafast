@@ -8,9 +8,7 @@ import type {
   InternalCreemClient
 } from "./types.js";
 
-function assertCreemClient(
-  candidate: unknown
-): asserts candidate is CreemSdkClientLike {
+function assertCreemClient(candidate: unknown): asserts candidate is CreemSdkClientLike {
   if (
     !candidate ||
     typeof candidate !== "object" ||
@@ -21,17 +19,15 @@ function assertCreemClient(
   }
 }
 
-export function createCreemClient(
-  options: CreemDataFastOptions
-): InternalCreemClient {
-  const sdkCandidate = options.creemClient ?? (
-    options.creemApiKey
+export function createCreemClient(options: CreemDataFastOptions): InternalCreemClient {
+  const sdkCandidate =
+    options.creemClient ??
+    (options.creemApiKey
       ? new Creem({
           apiKey: options.creemApiKey,
           serverIdx: options.testMode ? 1 : 0
         })
-      : undefined
-  );
+      : undefined);
 
   if (!sdkCandidate) {
     throw new CreemDataFastError("Missing creemApiKey or creemClient.");
@@ -45,9 +41,7 @@ export function createCreemClient(
     !sdkCandidate.transactions ||
     typeof sdkCandidate.transactions.getById !== "function"
   ) {
-    throw new CreemDataFastError(
-      "Provided creem client does not expose the expected SDK methods."
-    );
+    throw new CreemDataFastError("Provided creem client does not expose the expected SDK methods.");
   }
 
   return {

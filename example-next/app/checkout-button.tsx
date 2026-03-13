@@ -24,7 +24,9 @@ export function CheckoutButton() {
       const location = response.headers.get("Location");
 
       if (!response.ok || !location) {
-        throw new Error(`Expected redirect Location header from /api/checkout, received ${response.status}`);
+        throw new Error(
+          `Expected redirect Location header from /api/checkout, received ${response.status}`
+        );
       }
 
       window.location.assign(location);
@@ -49,13 +51,13 @@ export function CheckoutButton() {
         {isPending ? "Preparing tracked checkout..." : "Launch checkout with client helper"}
       </button>
       <p className="cta-caption">
-        Reads <code>datafast_visitor_id</code> from <code>document.cookie</code>,
-        appends it to <code>/api/checkout</code>, then follows the redirect returned by the server.
+        Reads <code>datafast_visitor_id</code> from <code>document.cookie</code>, appends it to{" "}
+        <code>/api/checkout</code>, then follows the redirect returned by the server.
       </p>
       {errorMessage ? (
-        <p className="cta-error" role="status">
+        <output className="cta-error" aria-live="polite">
           {errorMessage}
-        </p>
+        </output>
       ) : null}
     </div>
   );

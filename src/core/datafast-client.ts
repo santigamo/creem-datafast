@@ -69,10 +69,7 @@ function sanitizeResponseBody(body: unknown): unknown {
   }
 }
 
-function normalizePositiveInteger(
-  value: number | undefined,
-  fallback: number
-): number {
+function normalizePositiveInteger(value: number | undefined, fallback: number): number {
   if (value === undefined) {
     return fallback;
   }
@@ -101,24 +98,20 @@ function isAbortError(error: unknown): boolean {
 }
 
 function getRequestId(response: Response): string | undefined {
-  return response.headers.get("x-request-id")
-    ?? response.headers.get("request-id")
-    ?? response.headers.get("x-datafast-request-id")
-    ?? undefined;
+  return (
+    response.headers.get("x-request-id") ??
+    response.headers.get("request-id") ??
+    response.headers.get("x-datafast-request-id") ??
+    undefined
+  );
 }
 
 function isRetryableStatus(status: number): boolean {
   return RETRYABLE_STATUSES.has(status);
 }
 
-function computeDelayMs(
-  attempt: number,
-  retry: Required<RetryConfig>
-): number {
-  return Math.min(
-    retry.baseDelayMs * 2 ** attempt + Math.random() * 100,
-    retry.maxDelayMs
-  );
+function computeDelayMs(attempt: number, retry: Required<RetryConfig>): number {
+  return Math.min(retry.baseDelayMs * 2 ** attempt + Math.random() * 100, retry.maxDelayMs);
 }
 
 async function sleep(delayMs: number): Promise<void> {
@@ -129,9 +122,7 @@ async function sleep(delayMs: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 }
 
-export function createDataFastClient(
-  options: CreemDataFastOptions
-): InternalDataFastClient {
+export function createDataFastClient(options: CreemDataFastOptions): InternalDataFastClient {
   const fetchImplementation = resolveFetch(options.fetch);
   const logger = resolveLogger(options.logger);
   const timeoutMs = resolveTimeoutMs(options.timeoutMs);
@@ -217,9 +208,13 @@ export function createDataFastClient(
             );
           }
 
-          throw new DataFastRequestError("DataFast request failed due to a network error.", {
-            retryable: true
-          }, { cause: error instanceof Error ? error : undefined });
+          throw new DataFastRequestError(
+            "DataFast request failed due to a network error.",
+            {
+              retryable: true
+            },
+            { cause: error instanceof Error ? error : undefined }
+          );
         } finally {
           clearTimeout(timeout);
         }

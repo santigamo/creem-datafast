@@ -30,7 +30,8 @@ export default function HomePage() {
             </a>
           </form>
           <p className="cta-caption">
-            Same-origin form post: the backend reads DataFast tracking directly from the incoming request cookies.
+            Same-origin form post: the backend reads DataFast tracking directly from the incoming
+            request cookies.
           </p>
           <CheckoutButton />
         </div>
@@ -46,15 +47,18 @@ export default function HomePage() {
                 </a>
               </li>
               <li>
-                Add a website &mdash; the domain can be anything, e.g.{" "}
-                <code>myapp.com</code>
+                Add a website &mdash; the domain can be anything, e.g. <code>myapp.com</code>
               </li>
               <li>
                 Copy the website ID (<code>dfid_...</code>) from the snippet
               </li>
               <li>
                 Go to{" "}
-                <a href="https://datafa.st/dashboard/settings" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://datafa.st/dashboard/settings"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Settings
                 </a>{" "}
                 and copy your API key
@@ -73,14 +77,22 @@ export default function HomePage() {
               </li>
               <li>
                 Go to{" "}
-                <a href="https://creem.io/dashboard/api-keys" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://creem.io/dashboard/api-keys"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   API Keys
                 </a>{" "}
                 and copy your test key
               </li>
               <li>
                 Go to{" "}
-                <a href="https://creem.io/dashboard/products" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://creem.io/dashboard/products"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Products
                 </a>{" "}
                 and create a test product
@@ -94,11 +106,14 @@ export default function HomePage() {
               </li>
               <li>
                 Go to{" "}
-                <a href="https://creem.io/dashboard/webhooks" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://creem.io/dashboard/webhooks"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Webhooks
                 </a>{" "}
-                and set endpoint to{" "}
-                <code>https://&lt;tunnel&gt;/api/webhook/creem</code>
+                and set endpoint to <code>https://&lt;tunnel&gt;/api/webhook/creem</code>
               </li>
             </ol>
           </details>
@@ -114,8 +129,8 @@ export default function HomePage() {
               <div>
                 <strong>Capture</strong>
                 <p>
-                  Server reads <code>datafast_visitor_id</code> from request query
-                  params or cookies and injects it into Creem checkout metadata.
+                  Server reads <code>datafast_visitor_id</code> from request query params or cookies
+                  and injects it into Creem checkout metadata.
                 </p>
               </div>
             </div>
@@ -124,9 +139,8 @@ export default function HomePage() {
               <div>
                 <strong>Pay</strong>
                 <p>
-                  Customer completes payment on Creem. Webhooks fire{" "}
-                  <code>checkout.completed</code> and{" "}
-                  <code>subscription.paid</code>.
+                  Customer completes payment on Creem. Webhooks fire <code>checkout.completed</code>{" "}
+                  and <code>subscription.paid</code>.
                 </p>
               </div>
             </div>
@@ -135,8 +149,8 @@ export default function HomePage() {
               <div>
                 <strong>Attribute</strong>
                 <p>
-                  Webhook handler verifies signature, maps payload, and forwards
-                  payment to DataFast with visitor attribution.
+                  Webhook handler verifies signature, maps payload, and forwards payment to DataFast
+                  with visitor attribution.
                 </p>
               </div>
             </div>
@@ -178,8 +192,7 @@ export default function HomePage() {
             </label>
           </div>
           <p className="panel-note">
-            Copy <code>.env.example</code> to <code>.env.local</code> and fill
-            in your keys.
+            Copy <code>.env.example</code> to <code>.env.local</code> and fill in your keys.
           </p>
         </div>
       </div>

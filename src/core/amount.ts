@@ -17,15 +17,7 @@ const ZERO_DECIMAL_CURRENCIES = new Set([
   "XPF"
 ]);
 
-const THREE_DECIMAL_CURRENCIES = new Set([
-  "BHD",
-  "IQD",
-  "JOD",
-  "KWD",
-  "LYD",
-  "OMR",
-  "TND"
-]);
+const THREE_DECIMAL_CURRENCIES = new Set(["BHD", "IQD", "JOD", "KWD", "LYD", "OMR", "TND"]);
 
 export function currencyExponent(currency: string): 0 | 2 | 3 {
   const normalized = currency.toUpperCase();

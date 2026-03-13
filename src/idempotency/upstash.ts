@@ -9,9 +9,7 @@ type UpstashRedisLike = Pick<Redis, "del" | "set">;
  *
  * Install `@upstash/redis` in the consuming app and pass an initialized client.
  */
-export function createUpstashIdempotencyStore(
-  redis: UpstashRedisLike
-): IdempotencyStore {
+export function createUpstashIdempotencyStore(redis: UpstashRedisLike): IdempotencyStore {
   return {
     async claim(key, ttlSeconds = 300) {
       const result = await redis.set(key, "processing", {

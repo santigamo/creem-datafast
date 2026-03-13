@@ -42,13 +42,23 @@ function toIsoTimestamp(value: number | string | undefined): string | undefined 
 }
 
 function toCustomer(
-  value: CheckoutCompletedCustomer | SubscriptionPaidCustomer | RefundCreatedCustomer | string | undefined
+  value:
+    | CheckoutCompletedCustomer
+    | SubscriptionPaidCustomer
+    | RefundCreatedCustomer
+    | string
+    | undefined
 ): CheckoutCompletedCustomer | SubscriptionPaidCustomer | RefundCreatedCustomer | undefined {
   return typeof value === "object" && value !== null ? value : undefined;
 }
 
 function resolveCustomerId(
-  value: CheckoutCompletedCustomer | SubscriptionPaidCustomer | RefundCreatedCustomer | string | undefined
+  value:
+    | CheckoutCompletedCustomer
+    | SubscriptionPaidCustomer
+    | RefundCreatedCustomer
+    | string
+    | undefined
 ): string | undefined {
   if (typeof value === "string" && value.length > 0) {
     return value;
@@ -73,8 +83,10 @@ function withOptionalFields(
 }
 
 function getCheckoutMetadata(event: CheckoutCompletedEvent): CheckoutMetadata | undefined {
-  return asRecord(event.object?.metadata) as CheckoutMetadata | undefined
-    ?? asRecord(event.object?.order?.metadata) as CheckoutMetadata | undefined;
+  return (
+    (asRecord(event.object?.metadata) as CheckoutMetadata | undefined) ??
+    (asRecord(event.object?.order?.metadata) as CheckoutMetadata | undefined)
+  );
 }
 
 function getSubscriptionMetadata(event: SubscriptionPaidEvent): CheckoutMetadata | undefined {
@@ -82,12 +94,9 @@ function getSubscriptionMetadata(event: SubscriptionPaidEvent): CheckoutMetadata
 }
 
 function getRefundVisitorId(event: RefundCreatedEvent): string | undefined {
-  return readMetadataValue(
-    asRecord(event.object?.metadata),
-    "datafast_visitor_id"
-  ) ?? readMetadataValue(
-    asRecord(event.object?.transaction?.metadata),
-    "datafast_visitor_id"
+  return (
+    readMetadataValue(asRecord(event.object?.metadata), "datafast_visitor_id") ??
+    readMetadataValue(asRecord(event.object?.transaction?.metadata), "datafast_visitor_id")
   );
 }
 
@@ -101,20 +110,21 @@ function getRefundCurrency(event: RefundCreatedEvent): string | undefined {
 
 function getRefundTimestamp(event: RefundCreatedEvent): string | undefined {
   return toIsoTimestamp(
-    event.object?.created_at
-      ?? event.object?.createdAt
-      ?? event.created_at
-      ?? event.createdAt
-      ?? event.object?.transaction?.created_at
-      ?? event.object?.transaction?.createdAt
+    event.object?.created_at ??
+      event.object?.createdAt ??
+      event.created_at ??
+      event.createdAt ??
+      event.object?.transaction?.created_at ??
+      event.object?.transaction?.createdAt
   );
 }
 
 function isRefundRenewal(event: RefundCreatedEvent): boolean {
   const transaction = event.object?.transaction;
-  return Boolean(
-    typeof transaction?.subscription === "string" && transaction.subscription.length > 0
-  ) || transaction?.type === "invoice";
+  return (
+    Boolean(typeof transaction?.subscription === "string" && transaction.subscription.length > 0) ||
+    transaction?.type === "invoice"
+  );
 }
 
 export function mapCheckoutCompletedToPayment(
@@ -153,9 +163,8 @@ export function mapSubscriptionPaidToPayment(
   const customer = toCustomer(customerValue);
   const metadata = getSubscriptionMetadata(event);
   const product = event.object?.product;
-  const transactionId = transaction?.id
-    ?? event.object?.last_transaction_id
-    ?? event.object?.lastTransactionId;
+  const transactionId =
+    transaction?.id ?? event.object?.last_transaction_id ?? event.object?.lastTransactionId;
 
   if (!transactionId) {
     throw new CreemDataFastError("subscription.paid payload is missing last_transaction_id.");
@@ -163,7 +172,9 @@ export function mapSubscriptionPaidToPayment(
 
   if (!transaction) {
     if (!product || typeof product.price !== "number" || typeof product.currency !== "string") {
-      throw new CreemDataFastError("subscription.paid payload is missing product pricing for fallback mapping.");
+      throw new CreemDataFastError(
+        "subscription.paid payload is missing product pricing for fallback mapping."
+      );
     }
   }
 
@@ -181,16 +192,15 @@ export function mapSubscriptionPaidToPayment(
       datafast_visitor_id: readMetadataValue(metadata, "datafast_visitor_id"),
       email: customer?.email,
       name: customer?.name,
-      timestamp: transaction?.timestamp
-        ?? event.object?.last_transaction_date
-        ?? event.object?.lastTransactionDate
+      timestamp:
+        transaction?.timestamp ??
+        event.object?.last_transaction_date ??
+        event.object?.lastTransactionDate
     }
   );
 }
 
-export function mapRefundCreatedToPayment(
-  event: RefundCreatedEvent
-): DataFastPaymentPayload {
+export function mapRefundCreatedToPayment(event: RefundCreatedEvent): DataFastPaymentPayload {
   const refundId = event.object?.id;
   const refundAmount = getRefundAmount(event);
   const refundCurrency = getRefundCurrency(event);

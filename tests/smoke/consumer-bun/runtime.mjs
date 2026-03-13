@@ -85,7 +85,9 @@ const client = createCreemDataFast({
 });
 
 assert.equal(
-  await client.verifyWebhookSignature(rawBody, { "creem-signature": sign(rawBody) }),
+  await client.verifyWebhookSignature(rawBody, {
+    "creem-signature": sign(rawBody)
+  }),
   true
 );
 

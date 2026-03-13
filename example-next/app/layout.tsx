@@ -18,7 +18,8 @@ const monoFont = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "creem-datafast example",
-  description: "Minimal Next.js example for Creem checkout tracking and DataFast webhook forwarding."
+  description:
+    "Minimal Next.js example for Creem checkout tracking and DataFast webhook forwarding."
 };
 
 export default function RootLayout({

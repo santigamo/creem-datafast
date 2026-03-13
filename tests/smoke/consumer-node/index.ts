@@ -15,7 +15,10 @@ import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstas
 const creemClient: CreemSdkClientLike = {
   checkouts: {
     async create() {
-      return { id: "checkout_123", checkoutUrl: "https://example.com/checkout" };
+      return {
+        id: "checkout_123",
+        checkoutUrl: "https://example.com/checkout"
+      };
     }
   },
   transactions: {

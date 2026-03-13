@@ -5,12 +5,14 @@ import { mapSubscriptionPaidToPayment } from "../../src/core/mapper.js";
 
 describe("mapSubscriptionPaidToPayment", () => {
   it("maps subscription.paid using a hydrated transaction when present", () => {
-    expect(mapSubscriptionPaidToPayment(subscriptionPaidFixture, {
-      amount: transactionFixture.amount,
-      currency: transactionFixture.currency,
-      id: transactionFixture.id,
-      timestamp: "2026-03-12T10:00:00.000Z"
-    })).toEqual({
+    expect(
+      mapSubscriptionPaidToPayment(subscriptionPaidFixture, {
+        amount: transactionFixture.amount,
+        currency: transactionFixture.currency,
+        id: transactionFixture.id,
+        timestamp: "2026-03-12T10:00:00.000Z"
+      })
+    ).toEqual({
       amount: 10.99,
       currency: "EUR",
       customer_id: "cus_sub_123",
@@ -38,13 +40,15 @@ describe("mapSubscriptionPaidToPayment", () => {
   });
 
   it("uses a string customer as customer_id", () => {
-    expect(mapSubscriptionPaidToPayment({
-      ...subscriptionPaidFixture,
-      object: {
-        ...subscriptionPaidFixture.object,
-        customer: "cus_string_456"
-      }
-    })).toEqual({
+    expect(
+      mapSubscriptionPaidToPayment({
+        ...subscriptionPaidFixture,
+        object: {
+          ...subscriptionPaidFixture.object,
+          customer: "cus_string_456"
+        }
+      })
+    ).toEqual({
       amount: 10,
       currency: "EUR",
       customer_id: "cus_string_456",

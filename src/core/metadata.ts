@@ -1,7 +1,4 @@
-import type {
-  CheckoutMetadata,
-  DataFastTracking
-} from "./types.js";
+import type { CheckoutMetadata, DataFastTracking } from "./types.js";
 
 interface MergeTrackingOptions {
   captureSessionId?: boolean;
@@ -16,9 +13,7 @@ function asMetadataString(value: unknown): string | undefined {
   return undefined;
 }
 
-export function readTrackingFromMetadata(
-  metadata?: CheckoutMetadata
-): DataFastTracking {
+export function readTrackingFromMetadata(metadata?: CheckoutMetadata): DataFastTracking {
   if (!metadata) {
     return {};
   }
@@ -38,10 +33,7 @@ export function mergeTrackingIntoMetadata(
   const captureSessionId = options.captureSessionId ?? true;
   const preferTracking = options.preferTracking ?? false;
 
-  if (
-    tracking.visitorId &&
-    (preferTracking || result.datafast_visitor_id === undefined)
-  ) {
+  if (tracking.visitorId && (preferTracking || result.datafast_visitor_id === undefined)) {
     result.datafast_visitor_id = tracking.visitorId;
   }
 

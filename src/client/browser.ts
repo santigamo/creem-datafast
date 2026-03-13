@@ -13,9 +13,7 @@ function resolveCookieSource(cookieSource?: string): string | undefined {
   return document.cookie;
 }
 
-export function getDataFastTracking(
-  cookieSource?: string
-): BrowserTrackingResult {
+export function getDataFastTracking(cookieSource?: string): BrowserTrackingResult {
   return readTrackingFromCookieHeader(resolveCookieSource(cookieSource));
 }
 
@@ -24,9 +22,7 @@ export function appendDataFastTracking(
   tracking: BrowserTrackingResult = getDataFastTracking()
 ): string {
   const base = typeof window === "undefined" ? "http://localhost" : window.location.origin;
-  const url = inputUrl instanceof URL
-    ? new URL(inputUrl.toString())
-    : new URL(inputUrl, base);
+  const url = inputUrl instanceof URL ? new URL(inputUrl.toString()) : new URL(inputUrl, base);
 
   if (tracking.visitorId) {
     url.searchParams.set("datafast_visitor_id", tracking.visitorId);

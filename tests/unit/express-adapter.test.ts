@@ -14,24 +14,29 @@ describe("createExpressWebhookHandler", () => {
 
     await createExpressWebhookHandler({
       createCheckout: vi.fn(),
-      handleWebhook: vi.fn(async (): Promise<HandleWebhookResult> => ({
-        datafastResponse: { ok: true },
-        deduplicated: false,
-        eventId: "evt_123",
-        eventType: "checkout.completed" as const,
-        ignored: false as const,
-        ok: true,
-        payload: {
-          amount: 10,
-          currency: "EUR",
-          transaction_id: "txn_123"
-        }
-      })),
+      handleWebhook: vi.fn(
+        async (): Promise<HandleWebhookResult> => ({
+          datafastResponse: { ok: true },
+          deduplicated: false,
+          eventId: "evt_123",
+          eventType: "checkout.completed" as const,
+          ignored: false as const,
+          ok: true,
+          payload: {
+            amount: 10,
+            currency: "EUR",
+            transaction_id: "txn_123"
+          }
+        })
+      ),
       verifyWebhookSignature: vi.fn(async () => true)
-    })({
-      body: Buffer.from("{}"),
-      headers: {}
-    }, res);
+    })(
+      {
+        body: Buffer.from("{}"),
+        headers: {}
+      },
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(send).toHaveBeenCalledWith("OK");
@@ -52,10 +57,13 @@ describe("createExpressWebhookHandler", () => {
         throw new InvalidCreemSignatureError("bad");
       }),
       verifyWebhookSignature: vi.fn(async () => true)
-    })({
-      body: "{}",
-      headers: {}
-    }, res);
+    })(
+      {
+        body: "{}",
+        headers: {}
+      },
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(send).toHaveBeenCalledWith("Invalid signature");

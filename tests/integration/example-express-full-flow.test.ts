@@ -63,17 +63,18 @@ function createRuntimeHarness(): RuntimeHarness {
     checkoutUrl: CHECKOUT_URL,
     id: "checkout_123"
   }));
-  const getTransactionById = vi.fn(async (_transactionId: string) => (
+  const getTransactionById = vi.fn(async (_transactionId: string) =>
     structuredClone(transactionFixture)
-  ));
-  const datafastFetch = vi.fn(async () => (
-    new Response(JSON.stringify({ ok: true }), {
-      headers: {
-        "content-type": "application/json"
-      },
-      status: 200
-    })
-  ));
+  );
+  const datafastFetch = vi.fn(
+    async () =>
+      new Response(JSON.stringify({ ok: true }), {
+        headers: {
+          "content-type": "application/json"
+        },
+        status: 200
+      })
+  );
 
   const client = createCreemDataFast({
     creemClient: {
@@ -114,7 +115,9 @@ function getInjectedMetadata(harness: RuntimeHarness): Record<string, unknown> {
   const metadata = request?.metadata;
 
   if (!metadata || typeof metadata !== "object") {
-    throw new Error("Expected checkout metadata to be captured during the runtime integration test.");
+    throw new Error(
+      "Expected checkout metadata to be captured during the runtime integration test."
+    );
   }
 
   return metadata;

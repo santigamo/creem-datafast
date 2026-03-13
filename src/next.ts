@@ -3,6 +3,4 @@ export {
   handleWebhookRequest
 } from "./adapters/next.js";
 
-export type {
-  NextWebhookHandlerOptions
-} from "./core/types.js";
+export type { NextWebhookHandlerOptions } from "./core/types.js";

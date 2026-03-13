@@ -23,7 +23,7 @@ export async function hydrateTransaction(
   transactionId: string
 ): Promise<NormalizedTransaction> {
   try {
-    const rawTransaction = await creem.getTransactionById(transactionId) as RawTransaction;
+    const rawTransaction = (await creem.getTransactionById(transactionId)) as RawTransaction;
     if (
       !rawTransaction ||
       typeof rawTransaction.id !== "string" ||
@@ -44,9 +44,8 @@ export async function hydrateTransaction(
       throw error;
     }
 
-    throw new TransactionHydrationError(
-      `Failed to hydrate transaction ${transactionId}.`,
-      { cause: error }
-    );
+    throw new TransactionHydrationError(`Failed to hydrate transaction ${transactionId}.`, {
+      cause: error
+    });
   }
 }

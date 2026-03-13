@@ -40,10 +40,12 @@ describe("example-next custom webhook docs contract", () => {
     mockHandleWebhookRequest.mockRejectedValue(new InvalidCreemSignatureError("bad signature"));
 
     const { POST } = await loadRoute();
-    const response = await POST(new Request("https://example.com/api/webhook/creem", {
-      body: "{}",
-      method: "POST"
-    }));
+    const response = await POST(
+      new Request("https://example.com/api/webhook/creem", {
+        body: "{}",
+        method: "POST"
+      })
+    );
 
     expect(response.status).toBe(400);
     expect(await response.text()).toBe("Invalid signature");
@@ -53,10 +55,12 @@ describe("example-next custom webhook docs contract", () => {
     mockHandleWebhookRequest.mockRejectedValue(new Error("DataFast failed"));
 
     const { POST } = await loadRoute();
-    const response = await POST(new Request("https://example.com/api/webhook/creem", {
-      body: "{}",
-      method: "POST"
-    }));
+    const response = await POST(
+      new Request("https://example.com/api/webhook/creem", {
+        body: "{}",
+        method: "POST"
+      })
+    );
 
     expect(response.status).toBe(500);
     expect(await response.text()).toBe("Internal error");
@@ -77,10 +81,12 @@ describe("example-next custom webhook docs contract", () => {
     });
 
     const { POST } = await loadRoute();
-    const response = await POST(new Request("https://example.com/api/webhook/creem", {
-      body: "{}",
-      method: "POST"
-    }));
+    const response = await POST(
+      new Request("https://example.com/api/webhook/creem", {
+        body: "{}",
+        method: "POST"
+      })
+    );
 
     expect(response.status).toBe(200);
     expect(await response.text()).toBe("Ignored");

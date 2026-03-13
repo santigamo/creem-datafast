@@ -1,4 +1,6 @@
 ## Codebase Patterns
+- Keep `@vitest/coverage-v8` on the same release line as `vitest`; the latest coverage package tracks Vitest 4 and breaks the repo's Node 18 compatibility claim.
+- For Biome v2 format-only validation, use `biome check` with all linters disabled because `biome format` does not provide a `--check` mode.
 - Cloudflare Worker smoke coverage should bundle the built package first and run that bundle in Miniflare/workerd with `modulesRoot` set to the temp bundle dir; direct execution from `dist/` can fail before the package code runs.
 - Webhook signature verification is async end-to-end and uses Web Crypto, so docs/examples/tests must always `await verifyWebhookSignature()`.
 - Injectable third-party clients should expose a small public interface instead of `unknown`, and that type should stay aligned with the runtime validator.
@@ -399,4 +401,13 @@
 - **Learnings for future iterations:**
   - When an example needs to prove browser-helper behavior but the repo test runner is node-only, exporting a tiny pure URL builder from the client component keeps coverage cheap and avoids pulling in jsdom.
   - If a landing page demonstrates multiple attribution paths, label them explicitly in the visible UI and the README so reviewers can verify the right path instead of inferring it from implementation details.
+---
+## 2026-03-13 18:39 CET - visible-lint-and-coverage
+- Added Biome as the visible repo lint/format layer, introduced `pnpm lint` plus `pnpm format:check`, and wired the `package` CI job to run lint on both Node lanes.
+- Enabled Vitest V8 coverage with a dedicated `pnpm test:coverage` script, configured readable summary reporters under `coverage/`, and switched the Node 20 package lane to print the coverage summary in CI logs.
+- Fixed the first Biome rollout findings by removing two unused imports and tightening a couple of accessibility details in the Next.js example (`output` for live status text and decorative SVGs marked `aria-hidden`).
+- Files changed: `biome.json`, `package.json`, `pnpm-lock.yaml`, `.github/workflows/ci.yml`, `vitest.config.ts`, `README.md`, `AGENTS.md`, `progress.txt`, `src/index.ts`, `tests/unit/signature.test.ts`, `example-next/app/checkout-button.tsx`, `example-next/app/success/page.tsx`, plus Biome formatting across authored source/test/example files
+- **Learnings for future iterations:**
+  - The first Biome adoption pass is a good moment to let it surface real cleanup items like unused imports and a11y issues in example apps, not only formatting drift.
+  - If CI already has a Node version matrix, coverage can stay visible without doubling every lane by running the plain test suite on the minimum-runtime lane and `test:coverage` on the primary lane.
 ---

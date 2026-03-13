@@ -44,10 +44,7 @@ function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   return Uint8Array.from(bytes).buffer;
 }
 
-export function extractHeader(
-  headers: HeadersLike,
-  name: string
-): string | undefined {
+export function extractHeader(headers: HeadersLike, name: string): string | undefined {
   return getHeaderValue(headers, name);
 }
 

@@ -19,30 +19,34 @@ describe("mapRefundCreatedToPayment", () => {
   });
 
   it("supports partial refunds without touching the original transaction amount", () => {
-    expect(mapRefundCreatedToPayment({
-      ...refundCreatedFixture,
-      object: {
-        ...refundCreatedFixture.object,
-        refund_amount: 199
-      }
-    }).amount).toBe(1.99);
+    expect(
+      mapRefundCreatedToPayment({
+        ...refundCreatedFixture,
+        object: {
+          ...refundCreatedFixture.object,
+          refund_amount: 199
+        }
+      }).amount
+    ).toBe(1.99);
   });
 
   it("falls back to transaction metadata and string customers", () => {
-    expect(mapRefundCreatedToPayment({
-      ...refundCreatedFixture,
-      object: {
-        ...refundCreatedFixture.object,
-        customer: "cus_refund_string_123",
-        metadata: {},
-        transaction: {
-          ...refundCreatedFixture.object.transaction,
-          metadata: {
-            datafast_visitor_id: "visitor_from_transaction_metadata"
+    expect(
+      mapRefundCreatedToPayment({
+        ...refundCreatedFixture,
+        object: {
+          ...refundCreatedFixture.object,
+          customer: "cus_refund_string_123",
+          metadata: {},
+          transaction: {
+            ...refundCreatedFixture.object.transaction,
+            metadata: {
+              datafast_visitor_id: "visitor_from_transaction_metadata"
+            }
           }
         }
-      }
-    })).toEqual({
+      })
+    ).toEqual({
       amount: 5,
       currency: "EUR",
       customer_id: "cus_refund_string_123",
@@ -55,16 +59,18 @@ describe("mapRefundCreatedToPayment", () => {
   });
 
   it("marks one-off refunds as non-renewals", () => {
-    expect(mapRefundCreatedToPayment({
-      ...refundCreatedFixture,
-      object: {
-        ...refundCreatedFixture.object,
-        transaction: {
-          ...refundCreatedFixture.object.transaction,
-          subscription: null,
-          type: "payment_link"
+    expect(
+      mapRefundCreatedToPayment({
+        ...refundCreatedFixture,
+        object: {
+          ...refundCreatedFixture.object,
+          transaction: {
+            ...refundCreatedFixture.object.transaction,
+            subscription: null,
+            type: "payment_link"
+          }
         }
-      }
-    }).renewal).toBe(false);
+      }).renewal
+    ).toBe(false);
   });
 });

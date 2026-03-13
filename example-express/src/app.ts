@@ -14,9 +14,7 @@ type ExampleExpressAppOptions = {
   checkoutConfig?: ExampleExpressCheckoutConfig;
 };
 
-export function createExampleExpressApp(
-  options: ExampleExpressAppOptions = {}
-): Express {
+export function createExampleExpressApp(options: ExampleExpressAppOptions = {}): Express {
   const app = express();
   const client = options.client ?? getCreemDataFastClient();
   const checkoutConfig = options.checkoutConfig;
@@ -63,10 +61,12 @@ export function createExampleExpressApp(
     res.type("html").send(renderSuccessPage());
   });
 
-  app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    console.error("[example-express] request failed", error);
-    res.status(500).type("html").send(renderErrorPage());
-  });
+  app.use(
+    (error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+      console.error("[example-express] request failed", error);
+      res.status(500).type("html").send(renderErrorPage());
+    }
+  );
 
   return app;
 }

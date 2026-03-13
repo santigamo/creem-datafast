@@ -1,9 +1,7 @@
 import { createDataFastClient } from "../../src/core/datafast-client.js";
 import { DataFastRequestError } from "../../src/core/errors.js";
 
-async function getThrownDataFastError(
-  promise: Promise<unknown>
-): Promise<DataFastRequestError> {
+async function getThrownDataFastError(promise: Promise<unknown>): Promise<DataFastRequestError> {
   try {
     await promise;
   } catch (error) {
@@ -16,10 +14,13 @@ async function getThrownDataFastError(
 
 describe("datafast client", () => {
   it("sends the expected request", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { "content-type": "application/json" }
-    }));
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        })
+    );
 
     const client = createDataFastClient({
       creemWebhookSecret: "secret",
@@ -36,31 +37,39 @@ describe("datafast client", () => {
     const response = await client.sendPayment(payload);
 
     expect(response).toEqual({ ok: true });
-    expect(fetchMock).toHaveBeenCalledWith("https://datafa.st/api/v1/payments", expect.objectContaining({
-      body: JSON.stringify(payload),
-      headers: {
-        Authorization: "Bearer datafast_key",
-        "Content-Type": "application/json"
-      },
-      method: "POST"
-    }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://datafa.st/api/v1/payments",
+      expect.objectContaining({
+        body: JSON.stringify(payload),
+        headers: {
+          Authorization: "Bearer datafast_key",
+          "Content-Type": "application/json"
+        },
+        method: "POST"
+      })
+    );
   });
 
   it("throws on non-2xx responses", async () => {
     const client = createDataFastClient({
       creemWebhookSecret: "secret",
       datafastApiKey: "datafast_key",
-      fetch: vi.fn(async () => new Response(JSON.stringify({ error: "bad request" }), {
-        status: 400,
-        headers: { "content-type": "application/json" }
-      })) as typeof fetch
+      fetch: vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: "bad request" }), {
+            status: 400,
+            headers: { "content-type": "application/json" }
+          })
+      ) as typeof fetch
     });
 
-    await expect(client.sendPayment({
-      amount: 10,
-      currency: "EUR",
-      transaction_id: "txn_123"
-    })).rejects.toMatchObject({
+    await expect(
+      client.sendPayment({
+        amount: 10,
+        currency: "EUR",
+        transaction_id: "txn_123"
+      })
+    ).rejects.toMatchObject({
       responseBody: { error: "bad request" },
       retryable: false,
       status: 400
@@ -71,17 +80,22 @@ describe("datafast client", () => {
     const client = createDataFastClient({
       creemWebhookSecret: "secret",
       datafastApiKey: "datafast_key",
-      fetch: vi.fn(async () => new Response(JSON.stringify({ error: "server error" }), {
-        status: 500,
-        headers: { "content-type": "application/json" }
-      })) as typeof fetch
+      fetch: vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: "server error" }), {
+            status: 500,
+            headers: { "content-type": "application/json" }
+          })
+      ) as typeof fetch
     });
 
-    await expect(client.sendPayment({
-      amount: 10,
-      currency: "EUR",
-      transaction_id: "txn_500"
-    })).rejects.toMatchObject({
+    await expect(
+      client.sendPayment({
+        amount: 10,
+        currency: "EUR",
+        transaction_id: "txn_500"
+      })
+    ).rejects.toMatchObject({
       responseBody: { error: "server error" },
       retryable: true,
       status: 500
@@ -98,18 +112,23 @@ describe("datafast client", () => {
         warn: vi.fn(),
         error: vi.fn()
       };
-      const fetchMock = vi.fn()
-        .mockResolvedValueOnce(new Response(JSON.stringify({ error: "try again" }), {
-          status: 503,
-          headers: {
-            "content-type": "application/json",
-            "x-request-id": "req_retryable"
-          }
-        }))
-        .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), {
-          status: 200,
-          headers: { "content-type": "application/json" }
-        }));
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ error: "try again" }), {
+            status: 503,
+            headers: {
+              "content-type": "application/json",
+              "x-request-id": "req_retryable"
+            }
+          })
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+            headers: { "content-type": "application/json" }
+          })
+        );
 
       const client = createDataFastClient({
         creemWebhookSecret: "secret",
@@ -151,10 +170,13 @@ describe("datafast client", () => {
     vi.useFakeTimers();
 
     try {
-      const fetchMock = vi.fn(async () => new Response(JSON.stringify({ error: "bad request" }), {
-        status: 400,
-        headers: { "content-type": "application/json" }
-      }));
+      const fetchMock = vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: "bad request" }), {
+            status: 400,
+            headers: { "content-type": "application/json" }
+          })
+      );
 
       const client = createDataFastClient({
         creemWebhookSecret: "secret",
@@ -167,11 +189,13 @@ describe("datafast client", () => {
         }
       });
 
-      await expect(client.sendPayment({
-        amount: 10,
-        currency: "EUR",
-        transaction_id: "txn_no_retry"
-      })).rejects.toMatchObject({
+      await expect(
+        client.sendPayment({
+          amount: 10,
+          currency: "EUR",
+          transaction_id: "txn_no_retry"
+        })
+      ).rejects.toMatchObject({
         retryable: false,
         status: 400
       } satisfies Partial<DataFastRequestError>);
@@ -192,11 +216,18 @@ describe("datafast client", () => {
         warn: vi.fn(),
         error: vi.fn()
       };
-      const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
-        init?.signal?.addEventListener("abort", () => {
-          reject(new DOMException("The operation was aborted.", "AbortError"));
-        }, { once: true });
-      }));
+      const fetchMock = vi.fn(
+        (_input: RequestInfo | URL, init?: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener(
+              "abort",
+              () => {
+                reject(new DOMException("The operation was aborted.", "AbortError"));
+              },
+              { once: true }
+            );
+          })
+      );
 
       const client = createDataFastClient({
         creemWebhookSecret: "secret",
@@ -233,14 +264,10 @@ describe("datafast client", () => {
           reason: "timeout"
         })
       );
-      expect(logger.warn).toHaveBeenNthCalledWith(
-        2,
-        "DataFast request timed out.",
-        {
-          attempts: 2,
-          timeoutMs: 50
-        }
-      );
+      expect(logger.warn).toHaveBeenNthCalledWith(2, "DataFast request timed out.", {
+        attempts: 2,
+        timeoutMs: 50
+      });
     } finally {
       vi.useRealTimers();
     }
@@ -251,24 +278,29 @@ describe("datafast client", () => {
     const client = createDataFastClient({
       creemWebhookSecret: "secret",
       datafastApiKey: "datafast_key",
-      fetch: vi.fn(async () => new Response(largeError, {
-        status: 429,
-        statusText: "Too Many Requests",
-        headers: {
-          "content-type": "text/plain",
-          "x-request-id": "req_123"
-        }
-      })) as typeof fetch,
+      fetch: vi.fn(
+        async () =>
+          new Response(largeError, {
+            status: 429,
+            statusText: "Too Many Requests",
+            headers: {
+              "content-type": "text/plain",
+              "x-request-id": "req_123"
+            }
+          })
+      ) as typeof fetch,
       retry: {
         retries: 0
       }
     });
 
-    const error = await getThrownDataFastError(client.sendPayment({
-      amount: 10,
-      currency: "EUR",
-      transaction_id: "txn_429"
-    }));
+    const error = await getThrownDataFastError(
+      client.sendPayment({
+        amount: 10,
+        currency: "EUR",
+        transaction_id: "txn_429"
+      })
+    );
 
     expect(error.requestId).toBe("req_123");
     expect(error.retryable).toBe(true);

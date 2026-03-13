@@ -5,24 +5,24 @@ import { InvalidCreemSignatureError } from "creem-datafast";
 import { createExampleExpressApp } from "../../example-express/src/app.js";
 import type { CreemDataFastClient, HandleWebhookResult } from "../../src/core/types.js";
 
-function createClient(
-  overrides: Partial<CreemDataFastClient> = {}
-): CreemDataFastClient {
+function createClient(overrides: Partial<CreemDataFastClient> = {}): CreemDataFastClient {
   return {
     createCheckout: vi.fn(),
-    handleWebhook: vi.fn(async (): Promise<HandleWebhookResult> => ({
-      datafastResponse: { ok: true },
-      deduplicated: false,
-      eventId: "evt_123",
-      eventType: "checkout.completed",
-      ignored: false,
-      ok: true,
-      payload: {
-        amount: 10,
-        currency: "EUR",
-        transaction_id: "txn_123"
-      }
-    })),
+    handleWebhook: vi.fn(
+      async (): Promise<HandleWebhookResult> => ({
+        datafastResponse: { ok: true },
+        deduplicated: false,
+        eventId: "evt_123",
+        eventType: "checkout.completed",
+        ignored: false,
+        ok: true,
+        payload: {
+          amount: 10,
+          currency: "EUR",
+          transaction_id: "txn_123"
+        }
+      })
+    ),
     verifyWebhookSignature: vi.fn(async () => true),
     ...overrides
   };
@@ -70,26 +70,28 @@ describe("example-express runtime app", () => {
   });
 
   it("uses express.raw for webhook requests and returns 200 on success", async () => {
-    const handleWebhook = vi.fn(async (): Promise<HandleWebhookResult> => ({
-      datafastResponse: { ok: true },
-      deduplicated: false,
-      eventId: "evt_123",
-      eventType: "checkout.completed",
-      ignored: false,
-      ok: true,
-      payload: {
-        amount: 10,
-        currency: "EUR",
-        transaction_id: "txn_123"
-      }
-    }));
+    const handleWebhook = vi.fn(
+      async (): Promise<HandleWebhookResult> => ({
+        datafastResponse: { ok: true },
+        deduplicated: false,
+        eventId: "evt_123",
+        eventType: "checkout.completed",
+        ignored: false,
+        ok: true,
+        payload: {
+          amount: 10,
+          currency: "EUR",
+          transaction_id: "txn_123"
+        }
+      })
+    );
     const app = createExampleExpressApp({
       client: createClient({ handleWebhook })
     });
 
     server = app.listen(0, "127.0.0.1");
     const port = await getListeningPort(server);
-    const rawBody = "{\"ok\":true}";
+    const rawBody = '{"ok":true}';
 
     const response = await fetch(`http://127.0.0.1:${port}/api/webhook/creem`, {
       method: "POST",
@@ -165,13 +167,15 @@ describe("example-express runtime app", () => {
   });
 
   it("returns 200 when the webhook is intentionally ignored", async () => {
-    const handleWebhook = vi.fn(async (): Promise<HandleWebhookResult> => ({
-      eventId: "evt_ignored",
-      eventType: "customer.updated",
-      ignored: true,
-      ok: true,
-      reason: "unsupported_event"
-    }));
+    const handleWebhook = vi.fn(
+      async (): Promise<HandleWebhookResult> => ({
+        eventId: "evt_ignored",
+        eventType: "customer.updated",
+        ignored: true,
+        ok: true,
+        reason: "unsupported_event"
+      })
+    );
     const app = createExampleExpressApp({
       client: createClient({ handleWebhook })
     });
@@ -219,14 +223,17 @@ describe("example-express runtime app", () => {
 
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("https://creem.test/checkout/123");
-    expect(createCheckout).toHaveBeenCalledWith({
-      productId: "prod_test_123",
-      successUrl: "http://127.0.0.1:3000/success"
-    }, {
-      request: expect.objectContaining({
-        headers: expect.any(Object),
-        url: "/api/checkout"
-      })
-    });
+    expect(createCheckout).toHaveBeenCalledWith(
+      {
+        productId: "prod_test_123",
+        successUrl: "http://127.0.0.1:3000/success"
+      },
+      {
+        request: expect.objectContaining({
+          headers: expect.any(Object),
+          url: "/api/checkout"
+        })
+      }
+    );
   });
 });

@@ -1,6 +1,4 @@
-export {
-  createExpressWebhookHandler
-} from "./adapters/express.js";
+export { createExpressWebhookHandler } from "./adapters/express.js";
 
 export type {
   ExpressLikeRequest,

@@ -1,16 +1,12 @@
 import { createCheckout } from "./core/checkout.js";
 import { createCreemClient } from "./core/creem-client.js";
 import { createDataFastClient } from "./core/datafast-client.js";
-import { DataFastRequestError, InvalidCreemSignatureError } from "./core/errors.js";
+import { InvalidCreemSignatureError } from "./core/errors.js";
 import { MemoryIdempotencyStore } from "./core/idempotency.js";
 import { resolveLogger } from "./core/logger.js";
 import { extractHeader, verifyCreemSignature } from "./core/signature.js";
 import { handleWebhook } from "./core/webhook.js";
-import type {
-  CreemDataFastClient,
-  CreemDataFastOptions,
-  HeadersLike
-} from "./core/types.js";
+import type { CreemDataFastClient, CreemDataFastOptions, HeadersLike } from "./core/types.js";
 
 export type {
   CheckoutCustomerInput,
@@ -48,9 +44,7 @@ export {
 
 export { MemoryIdempotencyStore } from "./core/idempotency.js";
 
-export function createCreemDataFast(
-  options: CreemDataFastOptions
-): CreemDataFastClient {
+export function createCreemDataFast(options: CreemDataFastOptions): CreemDataFastClient {
   const logger = resolveLogger(options.logger);
   const creem = createCreemClient(options);
   const datafast = createDataFastClient(options);

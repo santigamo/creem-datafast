@@ -1,11 +1,10 @@
 import { createHmac } from "node:crypto";
 
 import { createCreemDataFast } from "../../src/index.js";
-import { InvalidCreemSignatureError } from "../../src/core/errors.js";
 import { extractHeader, verifyCreemSignature } from "../../src/core/signature.js";
 
 const secret = "creem_secret";
-const rawBody = "{\"ok\":true}";
+const rawBody = '{"ok":true}';
 
 function sign(body: string): string {
   return createHmac("sha256", secret).update(body).digest("hex");
@@ -40,11 +39,15 @@ describe("signature", () => {
   });
 
   it("reads headers case-insensitively", () => {
-    expect(extractHeader({ "Creem-Signature": sign(rawBody) }, "creem-signature")).toBe(sign(rawBody));
+    expect(extractHeader({ "Creem-Signature": sign(rawBody) }, "creem-signature")).toBe(
+      sign(rawBody)
+    );
   });
 
   it("surfaces missing signature through the higher-level API", async () => {
-    await expect(client.verifyWebhookSignature(rawBody, {})).rejects.toThrow("Missing creem-signature header.");
+    await expect(client.verifyWebhookSignature(rawBody, {})).rejects.toThrow(
+      "Missing creem-signature header."
+    );
   });
 
   it("throws a clear error when Web Crypto is unavailable", async () => {

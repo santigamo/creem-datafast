@@ -285,7 +285,9 @@ code {
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 
 .env-check input[type="checkbox"]:checked {

@@ -30,13 +30,15 @@ describe("mapCheckoutCompletedToPayment", () => {
   });
 
   it("uses a string customer as customer_id", () => {
-    expect(mapCheckoutCompletedToPayment({
-      ...checkoutCompletedFixture,
-      object: {
-        ...checkoutCompletedFixture.object,
-        customer: "cus_string_123"
-      }
-    })).toEqual({
+    expect(
+      mapCheckoutCompletedToPayment({
+        ...checkoutCompletedFixture,
+        object: {
+          ...checkoutCompletedFixture.object,
+          customer: "cus_string_123"
+        }
+      })
+    ).toEqual({
       amount: 29.99,
       currency: "USD",
       customer_id: "cus_string_123",

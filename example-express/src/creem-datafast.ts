@@ -2,11 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import {
-  createCreemDataFast,
-  type CreemDataFastOptions,
-  type LoggerLike
-} from "creem-datafast";
+import { createCreemDataFast, type CreemDataFastOptions, type LoggerLike } from "creem-datafast";
 
 const DATAFAST_URL = "https://datafa.st/api/v1/payments";
 const EXAMPLE_ROOT = fileURLToPath(new URL("../", import.meta.url));
@@ -73,11 +69,7 @@ function getRequiredEnv(name: string): string {
 function createDevFetch(baseFetch: typeof fetch): typeof fetch {
   return async (input, init) => {
     const url =
-      typeof input === "string"
-        ? input
-        : input instanceof URL
-          ? input.toString()
-          : input.url;
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
 
     if (process.env.NODE_ENV !== "production" && url === DATAFAST_URL) {
       console.info("[example-express] forwarding payload to DataFast", init?.body);

@@ -26,6 +26,7 @@
 - DataFast forwarding should use explicit timeouts and bounded retries in `src/core/datafast-client.ts`; retry only network errors, timeout aborts, and HTTP `408` / `429` / `5xx`, never broad `4xx`.
 - If `package.json` claims Node compatibility through `engines`, the GitHub Actions matrix should exercise the minimum supported Node version plus the primary current version.
 - Keep library CI separate from framework example CI when their Node requirements differ; `example-next` follows Next.js runtime minimums and should not dilute the root package's `node >=18` claim.
+- Keep `@vitest/coverage-v8` aligned with the installed `vitest` version; the latest coverage package tracks Vitest 4 and breaks this repo's Node 18 test matrix.
 - `example-next` should consume the root workspace package through its published `exports`, not `../src/*`; rebuild the root package before running the example after library changes.
 - If a root Vitest test needs to validate `example-next` client behavior, keep the URL-building logic in a tiny exported helper so the test can stay node-only without adding jsdom or React Testing Library.
 - Lightweight adapter demos should stay as small workspace apps: prefer `tsx` plus a tiny local `.env.local` loader over adding bundlers or `dotenv` when the example only needs to prove the integration shape.
@@ -43,3 +44,4 @@
 - If the README documents a root-level import from `creem-datafast`, cover that symbol in the packaged smoke consumer so docs and published exports cannot drift silently.
 - Keep `datafast_session_id` capture limited to Creem metadata until DataFast documents payment API support for it; webhook payment payloads should continue forwarding only `datafast_visitor_id`.
 - If an example or integration uses the DataFast tracking script alongside server-side payment forwarding, set `data-disable-payments="true"` on the script tag or DataFast can record the same payment twice.
+- Biome v2 does not expose `biome format --check`; use `biome check` with linters disabled for format-only validation and keep `pnpm lint` / `pnpm format:check` scoped to the authored source trees.

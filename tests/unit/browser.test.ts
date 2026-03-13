@@ -23,10 +23,12 @@ describe("browser helpers", () => {
   });
 
   it("appends tracking onto existing query params", () => {
-    expect(appendDataFastTracking("/api/checkout?foo=bar", {
-      sessionId: "session_1",
-      visitorId: "visitor_1"
-    })).toBe("/api/checkout?foo=bar&datafast_visitor_id=visitor_1&datafast_session_id=session_1");
+    expect(
+      appendDataFastTracking("/api/checkout?foo=bar", {
+        sessionId: "session_1",
+        visitorId: "visitor_1"
+      })
+    ).toBe("/api/checkout?foo=bar&datafast_visitor_id=visitor_1&datafast_session_id=session_1");
   });
 
   it("does not fail without cookies", () => {

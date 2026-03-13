@@ -28,9 +28,11 @@ function getEventId(payload: Record<string, unknown>): string | undefined {
 }
 
 function isSupportedWebhookEvent(eventType: string): eventType is SupportedWebhookEvent {
-  return eventType === "checkout.completed"
-    || eventType === "subscription.paid"
-    || eventType === "refund.created";
+  return (
+    eventType === "checkout.completed" ||
+    eventType === "subscription.paid" ||
+    eventType === "refund.created"
+  );
 }
 
 function parseWebhookPayload(rawBody: string): Record<string, unknown> {
@@ -41,9 +43,11 @@ function isInitialSubscriptionCheckout(payload: CheckoutCompletedEvent): boolean
   const orderType = payload.object?.order?.type;
   const subscription = payload.object?.subscription;
 
-  return orderType === "recurring"
-    || typeof subscription === "string"
-    || (typeof subscription === "object" && subscription !== null);
+  return (
+    orderType === "recurring" ||
+    typeof subscription === "string" ||
+    (typeof subscription === "object" && subscription !== null)
+  );
 }
 
 export async function handleWebhook(
@@ -55,7 +59,7 @@ export async function handleWebhook(
     throw new InvalidCreemSignatureError("Missing creem-signature header.");
   }
 
-  if (!await verifyCreemSignature(params.rawBody, dependencies.creemWebhookSecret, signature)) {
+  if (!(await verifyCreemSignature(params.rawBody, dependencies.creemWebhookSecret, signature))) {
     throw new InvalidCreemSignatureError("Invalid Creem webhook signature.");
   }
 
@@ -98,14 +102,10 @@ export async function handleWebhook(
   }
 
   if (
-    eventType === "checkout.completed"
-    && isInitialSubscriptionCheckout(payload as CheckoutCompletedEvent)
+    eventType === "checkout.completed" &&
+    isInitialSubscriptionCheckout(payload as CheckoutCompletedEvent)
   ) {
-    await completeEvent(
-      eventId,
-      idempotencyStore,
-      dependencies.idempotencyProcessedTtlSeconds
-    );
+    await completeEvent(eventId, idempotencyStore, dependencies.idempotencyProcessedTtlSeconds);
     return {
       ok: true,
       ignored: true,
@@ -119,32 +119,37 @@ export async function handleWebhook(
   let datafastResponse: unknown;
 
   try {
-    normalizedPayload = eventType === "checkout.completed"
-      ? mapCheckoutCompletedToPayment(payload as CheckoutCompletedEvent)
-      : eventType === "refund.created"
-        ? mapRefundCreatedToPayment(payload as RefundCreatedEvent)
-        : await (async () => {
-          const subscriptionPayload = payload as SubscriptionPaidEvent;
-          const lastTransactionId = subscriptionPayload.object?.last_transaction_id
-            ?? subscriptionPayload.object?.lastTransactionId;
+    normalizedPayload =
+      eventType === "checkout.completed"
+        ? mapCheckoutCompletedToPayment(payload as CheckoutCompletedEvent)
+        : eventType === "refund.created"
+          ? mapRefundCreatedToPayment(payload as RefundCreatedEvent)
+          : await (async () => {
+              const subscriptionPayload = payload as SubscriptionPaidEvent;
+              const lastTransactionId =
+                subscriptionPayload.object?.last_transaction_id ??
+                subscriptionPayload.object?.lastTransactionId;
 
-          if (
-            dependencies.hydrateTransactionOnSubscriptionPaid &&
-            lastTransactionId
-          ) {
-            try {
-              const transaction = await hydrateTransaction(dependencies.creem, lastTransactionId);
-              return mapSubscriptionPaidToPayment(subscriptionPayload, transaction);
-            } catch (error) {
-              dependencies.logger.warn("Falling back to subscription product pricing after transaction hydration failure.", {
-                error,
-                lastTransactionId
-              });
-            }
-          }
+              if (dependencies.hydrateTransactionOnSubscriptionPaid && lastTransactionId) {
+                try {
+                  const transaction = await hydrateTransaction(
+                    dependencies.creem,
+                    lastTransactionId
+                  );
+                  return mapSubscriptionPaidToPayment(subscriptionPayload, transaction);
+                } catch (error) {
+                  dependencies.logger.warn(
+                    "Falling back to subscription product pricing after transaction hydration failure.",
+                    {
+                      error,
+                      lastTransactionId
+                    }
+                  );
+                }
+              }
 
-          return mapSubscriptionPaidToPayment(subscriptionPayload);
-        })();
+              return mapSubscriptionPaidToPayment(subscriptionPayload);
+            })();
 
     datafastResponse = await dependencies.datafast.sendPayment(normalizedPayload);
   } catch (error) {
@@ -152,11 +157,7 @@ export async function handleWebhook(
     throw error;
   }
 
-  await completeEvent(
-    eventId,
-    idempotencyStore,
-    dependencies.idempotencyProcessedTtlSeconds
-  );
+  await completeEvent(eventId, idempotencyStore, dependencies.idempotencyProcessedTtlSeconds);
 
   return {
     ok: true,

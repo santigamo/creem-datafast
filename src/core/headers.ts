@@ -16,10 +16,7 @@ function normalizeArrayValue(value: string | string[] | undefined): string | und
   return undefined;
 }
 
-export function getHeaderValue(
-  headers: HeadersLike,
-  name: string
-): string | undefined {
+export function getHeaderValue(headers: HeadersLike, name: string): string | undefined {
   if (isHeadersInstance(headers)) {
     return headers.get(name) ?? headers.get(name.toLowerCase()) ?? undefined;
   }
@@ -35,10 +32,7 @@ export function getHeaderValue(
   return undefined;
 }
 
-export function getHeaderValues(
-  headers: HeadersLike,
-  name: string
-): string[] {
+export function getHeaderValues(headers: HeadersLike, name: string): string[] {
   if (isHeadersInstance(headers)) {
     const value = headers.get(name) ?? headers.get(name.toLowerCase());
     return value ? [value] : [];

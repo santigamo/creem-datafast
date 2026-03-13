@@ -19,9 +19,7 @@ export interface IdempotencyStore {
   release(key: string): Promise<void>;
 }
 
-export type HeadersLike =
-  | Headers
-  | Record<string, string | string[] | undefined>;
+export type HeadersLike = Headers | Record<string, string | string[] | undefined>;
 
 export interface RequestLike {
   headers: HeadersLike;
@@ -84,10 +82,7 @@ export interface HandleWebhookParams {
   headers: HeadersLike;
 }
 
-export type SupportedWebhookEvent =
-  | "checkout.completed"
-  | "subscription.paid"
-  | "refund.created";
+export type SupportedWebhookEvent = "checkout.completed" | "subscription.paid" | "refund.created";
 
 /**
  * DataFast payment payload fields currently documented by the receiver API.
@@ -144,9 +139,7 @@ export interface CreemCheckoutResponse {
  */
 export interface CreemSdkClientLike {
   checkouts: {
-    create(
-      request: CreemCheckoutCreateRequest
-    ): Promise<CreemCheckoutResponse>;
+    create(request: CreemCheckoutCreateRequest): Promise<CreemCheckoutResponse>;
   };
   transactions: {
     getById(transactionId: string): Promise<unknown>;
@@ -176,10 +169,7 @@ export type IgnoredWebhookResult = {
   ignored: true;
   eventId?: string;
   eventType?: string;
-  reason:
-    | "unsupported_event"
-    | "duplicate_event"
-    | "delegated_to_subscription_paid";
+  reason: "unsupported_event" | "duplicate_event" | "delegated_to_subscription_paid";
 };
 
 /**
@@ -188,9 +178,7 @@ export type IgnoredWebhookResult = {
  * Branch on `ignored` to distinguish forwarded payments from intentionally
  * ignored deliveries.
  */
-export type HandleWebhookResult =
-  | ProcessedWebhookResult
-  | IgnoredWebhookResult;
+export type HandleWebhookResult = ProcessedWebhookResult | IgnoredWebhookResult;
 
 export interface CreemDataFastOptions {
   creemApiKey?: string;
@@ -220,9 +208,7 @@ export interface CreemDataFastClient {
    *
    * Use this when you already have the exact raw request body and headers from your framework.
    */
-  handleWebhook(
-    params: HandleWebhookParams
-  ): Promise<HandleWebhookResult>;
+  handleWebhook(params: HandleWebhookParams): Promise<HandleWebhookResult>;
   /**
    * Validates the `creem-signature` header against the exact raw webhook body.
    *
@@ -230,10 +216,7 @@ export interface CreemDataFastClient {
    * Returns `true` for a valid signature and `false` for an invalid one.
    * Throws `InvalidCreemSignatureError` when the `creem-signature` header is missing.
    */
-  verifyWebhookSignature(
-    rawBody: string,
-    headers: HeadersLike
-  ): Promise<boolean>;
+  verifyWebhookSignature(rawBody: string, headers: HeadersLike): Promise<boolean>;
 }
 
 export interface NextWebhookHandlerOptions {
@@ -271,18 +254,12 @@ export interface NormalizedTransaction {
 }
 
 export interface InternalCreemClient {
-  createCheckout(
-    request: InternalCreateCheckoutRequest
-  ): Promise<InternalCheckoutResponse>;
-  getTransactionById(
-    transactionId: string
-  ): Promise<unknown>;
+  createCheckout(request: InternalCreateCheckoutRequest): Promise<InternalCheckoutResponse>;
+  getTransactionById(transactionId: string): Promise<unknown>;
 }
 
 export interface InternalDataFastClient {
-  sendPayment(
-    payload: DataFastPaymentPayload
-  ): Promise<unknown>;
+  sendPayment(payload: DataFastPaymentPayload): Promise<unknown>;
 }
 
 export interface CheckoutCompletedCustomer {

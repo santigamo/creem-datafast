@@ -324,7 +324,10 @@ Package checks:
 
 ```bash
 pnpm build
+pnpm lint
+pnpm format:check
 pnpm test
+pnpm test:coverage
 pnpm typecheck
 pnpm smoke:consumer
 ```
@@ -333,13 +336,16 @@ These same checks run in GitHub Actions on every push and pull request.
 
 GitHub Actions validates the root package and workspace examples like this:
 
-- `package` runs on Node 18 and 20 and checks `build`, `typecheck`, `test`, and `smoke:consumer`.
+- `package` runs on Node 18 and 20 and checks `build`, `lint`, `typecheck`, and `smoke:consumer`.
+- `package` runs plain `pnpm test` on Node 18 and `pnpm test:coverage` on Node 20, so CI keeps the minimum-runtime signal while also printing a readable coverage summary in logs.
 - `package` also typechecks `example-express` on Node 18 after building the root package, so the lightweight Express example stays compatible without needing a separate job.
 - `cloudflare-workers-smoke` runs the built root package inside workerd via a bundled Cloudflare Worker smoke.
 - `bun-smoke` packs the real tarball, installs it into an isolated Bun fixture, and exercises the async signature + webhook core flow.
 - `example-next` runs on Node 20.9+ because Next.js 16 requires it, builds the root package first, then checks `typecheck` plus `build`.
 - The `example-next` CI job uses placeholder env values so it validates compilation of the workspace package integration only; it does not call real Creem or DataFast services.
 - `pnpm test` now includes an automated integration test that boots the real `example-express` app over HTTP and covers the full server-side attribution flow with stubbed Creem/DataFast edges.
+
+`pnpm format:check` validates formatting through Biome, and `pnpm test:coverage` writes reports to `coverage/` while printing the summary table shown in CI logs.
 
 `pnpm smoke:consumer` packs the real `.tgz`, installs it into an isolated TypeScript consumer fixture, runs `tsc --noEmit`, and verifies the root plus `next`, `express`, and `client` subpath imports at runtime.
 

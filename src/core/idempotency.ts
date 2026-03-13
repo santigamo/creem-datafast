@@ -86,9 +86,6 @@ export async function completeEvent(
   await store.complete(getIdempotencyKey(eventId), ttlSeconds);
 }
 
-export async function releaseEvent(
-  eventId: string,
-  store: IdempotencyStore
-): Promise<void> {
+export async function releaseEvent(eventId: string, store: IdempotencyStore): Promise<void> {
   await store.release(getIdempotencyKey(eventId));
 }

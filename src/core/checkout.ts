@@ -22,15 +22,16 @@ function resolveTracking(
   captureSessionId: boolean
 ): DataFastTracking {
   return {
-    visitorId: explicit?.visitorId
-      ?? metadataTracking.visitorId
-      ?? queryTracking.visitorId
-      ?? cookieTracking.visitorId,
+    visitorId:
+      explicit?.visitorId ??
+      metadataTracking.visitorId ??
+      queryTracking.visitorId ??
+      cookieTracking.visitorId,
     sessionId: captureSessionId
-      ? explicit?.sessionId
-        ?? metadataTracking.sessionId
-        ?? queryTracking.sessionId
-        ?? cookieTracking.sessionId
+      ? (explicit?.sessionId ??
+        metadataTracking.sessionId ??
+        queryTracking.sessionId ??
+        cookieTracking.sessionId)
       : undefined
   };
 }
