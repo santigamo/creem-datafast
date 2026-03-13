@@ -36,7 +36,8 @@ export type {
 } from "./core/types.js";
 
 export {
-  DataFastRequestError
+  DataFastRequestError,
+  InvalidCreemSignatureError
 } from "./core/errors.js";
 
 export function createCreemDataFast(

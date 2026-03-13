@@ -1,5 +1,6 @@
 ## Codebase Patterns
 - Keep the root README focused on install/use/configure quickstart flow; move longer operational recipes with infrastructure snippets into `docs/` and link from the relevant README sections.
+- Packaged consumer smoke coverage should include every README-documented root import so published exports and docs cannot drift apart silently.
 - Keep `datafast_session_id` capture limited to Creem metadata until DataFast documents payment API support for it; webhook payment payloads should forward only `datafast_visitor_id`.
 - Treat Creem initial subscription `checkout.completed` deliveries as control-flow only; ignore them and let `subscription.paid` own payment attribution so the first recurring purchase is not forwarded twice.
 - Verify Creem webhooks against the raw body and keep adapters transport-only; Express integrations must use `express.raw({ type: "application/json" })`.
@@ -239,4 +240,12 @@
   - Runnable adapter demos do not need frontend tooling; inline HTML is enough when the goal is to prove transport wiring and webhook behavior.
   - A tiny local `.env.local` loader keeps workspace examples self-contained and avoids extra setup dependencies when the runtime already has filesystem access.
   - Example validation can often piggyback on an existing package job with a narrow `typecheck` step instead of justifying another CI matrix entry.
+---
+## 2026-03-13 14:38 CET - invalid-signature-root-export
+- Exported `InvalidCreemSignatureError` from the root package to match the documented Next.js custom webhook flow and keep `instanceof` branching on public imports working.
+- Extended the packaged consumer smoke fixture to typecheck and runtime-assert the new root export, then revalidated `build`, `typecheck`, `test`, and `smoke:consumer`.
+- Files changed: `src/index.ts`, `tests/smoke/consumer-node/index.ts`, `tests/smoke/consumer-node/runtime.mjs`, `dist/index.js`, `dist/index.d.ts`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - Public API regressions can hide when smoke tests cover only some exports; include every README-documented root import in the packaged consumer fixture.
+  - If consumer code is expected to catch a runtime error with `instanceof`, export that error from the root package instead of relying on internal paths.
 ---
