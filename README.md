@@ -277,6 +277,47 @@ Optional constructor hardening:
 - `retry.baseDelayMs`: base backoff delay in milliseconds. Defaults to `250`.
 - `retry.maxDelayMs`: maximum backoff delay in milliseconds. Defaults to `2000`.
 
+## Idempotency
+
+`handleWebhook()` uses an in-process `MemoryIdempotencyStore` by default. This is convenient for local development and single-instance deployments, but it is not safe for multi-instance production environments because deduplication does not survive process restarts or span multiple instances.
+
+Recommended production setup:
+
+```bash
+pnpm add @upstash/redis
+```
+
+```ts
+import { Redis } from "@upstash/redis";
+import { createCreemDataFast } from "creem-datafast";
+import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!
+});
+
+export const creemDataFast = createCreemDataFast({
+  creemApiKey: process.env.CREEM_API_KEY!,
+  creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  datafastApiKey: process.env.DATAFAST_API_KEY!,
+  idempotencyStore: createUpstashIdempotencyStore(redis)
+});
+```
+
+Use a shared atomic store like this for Vercel, Railway, Render, AWS Lambda, or any horizontally scaled deployment where the same webhook may reach more than one process.
+
+If your platform already injects Upstash env vars, `Redis.fromEnv()` works too:
+
+```ts
+import { Redis } from "@upstash/redis";
+import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
+
+const idempotencyStore = createUpstashIdempotencyStore(Redis.fromEnv());
+```
+
+See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for the `IdempotencyStore` contract, TTL guidance, the official Upstash helper, and how to implement a custom store.
+
 ## Testing Local
 
 Package checks:
@@ -338,47 +379,6 @@ Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/
 5. Set the Creem webhook endpoint to `https://<your-tunnel>/api/webhook/creem`.
 6. Open the example app, start a checkout, and complete a payment in Creem test mode.
 7. Expect the example server logs to show the payload forwarded to DataFast; the Next example also logs processed versus ignored webhook outcomes explicitly.
-
-## Idempotency
-
-`handleWebhook()` uses an in-process `MemoryIdempotencyStore` by default. This is convenient for local development and single-instance deployments, but it is not safe for multi-instance production environments because deduplication does not survive process restarts or span multiple instances.
-
-Recommended production setup:
-
-```bash
-pnpm add @upstash/redis
-```
-
-```ts
-import { Redis } from "@upstash/redis";
-import { createCreemDataFast } from "creem-datafast";
-import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!
-});
-
-export const creemDataFast = createCreemDataFast({
-  creemApiKey: process.env.CREEM_API_KEY!,
-  creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
-  datafastApiKey: process.env.DATAFAST_API_KEY!,
-  idempotencyStore: createUpstashIdempotencyStore(redis)
-});
-```
-
-Use a shared atomic store like this for Vercel, Railway, Render, AWS Lambda, or any horizontally scaled deployment where the same webhook may reach more than one process.
-
-If your platform already injects Upstash env vars, `Redis.fromEnv()` works too:
-
-```ts
-import { Redis } from "@upstash/redis";
-import { createUpstashIdempotencyStore } from "creem-datafast/idempotency/upstash";
-
-const idempotencyStore = createUpstashIdempotencyStore(Redis.fromEnv());
-```
-
-See [`docs/production-idempotency.md`](./docs/production-idempotency.md) for the `IdempotencyStore` contract, TTL guidance, the official Upstash helper, and how to implement a custom store.
 
 ## Troubleshooting
 
