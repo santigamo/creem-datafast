@@ -444,3 +444,11 @@
   - Compatibility copy should not promise more than the exact CI signal; if a smoke test uses injected boundaries, say so in the docs.
   - Payment amount suites should cover tiny and large samples for each supported exponent bucket so currency normalization confidence is obvious to reviewers.
 ---
+## 2026-03-13 18:55 CET - smoke-scope-and-lowercase-currency-followup
+- Added an explicit testing note in the README that the Bun and Cloudflare smoke jobs validate core portability, not a live Creem/DataFast integration.
+- Added a lowercase-currency regression to the amount suite so the public normalization contract is covered directly.
+- Files changed: `README.md`, `tests/unit/amount.test.ts`, `AGENTS.md`, `progress.txt`
+- **Learnings for future iterations:**
+  - If implementation normalizes case on external identifiers like currency codes, keep at least one regression that proves lowercase input still takes the correct branch.
+  - Testing docs should state the limit of smoke coverage in plain language when the job name alone could be over-read by reviewers.
+---

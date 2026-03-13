@@ -345,6 +345,8 @@ GitHub Actions validates the root package and workspace examples like this:
 - The `example-next` CI job uses placeholder env values so it validates compilation of the workspace package integration only; it does not call real Creem or DataFast services.
 - `pnpm test` now includes an automated integration test that boots the real `example-express` app over HTTP and covers the full server-side attribution flow with stubbed Creem/DataFast edges.
 
+Those Bun and Cloudflare smoke checks validate portability of the core package surface, not a live third-party Creem/DataFast integration.
+
 `pnpm format:check` validates formatting through Biome, and `pnpm test:coverage` writes reports to `coverage/` while printing the summary table shown in CI logs.
 
 `pnpm smoke:consumer` packs the real `.tgz`, installs it into an isolated TypeScript consumer fixture, runs `tsc --noEmit`, and verifies the root plus `next`, `express`, and `client` subpath imports at runtime.

@@ -27,4 +27,9 @@ describe("amount", () => {
     expect(minorToMajor(1, "ZZZ")).toBe(0.01);
     expect(minorToMajor(123456, "ZZZ")).toBe(1234.56);
   });
+
+  it("normalizes lowercase currency codes before choosing the exponent", () => {
+    expect(currencyExponent("jpy")).toBe(0);
+    expect(minorToMajor(1, "kwd")).toBe(0.001);
+  });
 });

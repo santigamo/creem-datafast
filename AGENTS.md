@@ -48,3 +48,4 @@
 - Keep `datafast_session_id` capture limited to Creem metadata until DataFast documents payment API support for it; webhook payment payloads should continue forwarding only `datafast_visitor_id`.
 - If an example or integration uses the DataFast tracking script alongside server-side payment forwarding, set `data-disable-payments="true"` on the script tag or DataFast can record the same payment twice.
 - Biome v2 does not expose `biome format --check`; use `biome check` with linters disabled for format-only validation and keep `pnpm lint` / `pnpm format:check` scoped to the authored source trees.
+- Amount normalization tests should include lowercase currency inputs because the implementation intentionally normalizes ISO codes with `toUpperCase()`.
