@@ -33,6 +33,10 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Typecheck example-express
+        if: matrix.node-version == 18
+        run: pnpm --filter example-express typecheck
+
       - name: Typecheck
         run: pnpm typecheck
 

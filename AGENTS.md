@@ -2,7 +2,7 @@
 
 ## Repository Notes
 
-- The publishable package lives at the repository root; the runnable merchant example lives in `example-next/`.
+- The publishable package lives at the repository root; runnable workspace examples live in `example-next/` and `example-express/`.
 - Webhook verification depends on the exact raw body. For Express integrations use `express.raw({ type: "application/json" })`, not `express.json()`.
 - `createCheckout()` tracking resolution is per-field and ordered as `params.tracking` -> metadata `datafast_*` -> `request.url` query params -> cookies; Express integrations that rely on the browser helper should pass `req.url`.
 - Reserve `MissingTrackingError` for strict tracking failures; invalid Creem SDK responses should throw the generic `CreemDataFastError`.
@@ -20,6 +20,7 @@
 - If `package.json` claims Node compatibility through `engines`, the GitHub Actions matrix should exercise the minimum supported Node version plus the primary current version.
 - Keep library CI separate from framework example CI when their Node requirements differ; `example-next` follows Next.js runtime minimums and should not dilute the root package's `node >=18` claim.
 - `example-next` should consume the root workspace package through its published `exports`, not `../src/*`; rebuild the root package before running the example after library changes.
+- Lightweight adapter demos should stay as small workspace apps: prefer `tsx` plus a tiny local `.env.local` loader over adding bundlers or `dotenv` when the example only needs to prove the integration shape.
 - If the package claims `node >=18`, keep the test runner on a Node-18-compatible major; `vitest` 4 requires Node 20+ and breaks the minimum-version CI job.
 - When `next build` updates `example-next/tsconfig.json` or `example-next/next-env.d.ts` with mandatory Next.js TypeScript settings, keep those generated changes so future builds stay clean.
 - Example-app CI may use placeholder env vars strictly to prove the app typechecks/builds; keep that documented so nobody reads the example job as a live integration check.

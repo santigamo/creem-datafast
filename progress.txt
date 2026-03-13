@@ -16,6 +16,7 @@
 - Distribution confidence should come from installing the packed `.tgz` into an isolated consumer fixture and checking root plus subpath imports, not from importing source files inside the repo.
 - Keep root-package CI separate from framework-example CI when their runtime floors differ; the library's Node support claim should be validated independently from `example-next`'s Next.js minimum.
 - Workspace examples should import the built root package via `workspace:*` and `exports`, not source aliases to `../src/*`; packaged smoke tests already cover the tarball case.
+- Lightweight adapter demos can stay as small TypeScript workspaces run with `tsx` plus a local `.env.local` loader; avoid pulling in bundlers or `dotenv` unless the example truly needs them.
 - Test tooling must also honor the package Node floor; if CI validates Node 18, keep `vitest` on a major that still supports Node 18.
 - Keep GitHub Actions core actions updated when GitHub deprecates their runner Node version, or CI will stay green but accumulate avoidable platform warnings.
 
@@ -229,4 +230,13 @@
 - **Learnings for future iterations:**
   - Do not add undeclared attribution fields to the DataFast payment payload speculatively; keep them in Creem metadata until the receiver API documents support.
   - Small payload-contract decisions are worth documenting in both code comments and the README so future contributors do not infer unsupported fields from checkout metadata alone.
+---
+## 2026-03-13 13:57 CET - example-express-runnable
+- Added a minimal runnable `example-express` workspace with a landing page, server-side checkout route, raw-body webhook route, success page, and dev-time logging around DataFast forwarding.
+- Updated the root README and CI so the new Express example is documented alongside `example-next` and typechecked on Node 18 inside the existing package job.
+- Files changed: `example-express/**`, `pnpm-workspace.yaml`, `README.md`, `.github/workflows/ci.yml`, `AGENTS.md`, `progress.txt`, `pnpm-lock.yaml`
+- **Learnings for future iterations:**
+  - Runnable adapter demos do not need frontend tooling; inline HTML is enough when the goal is to prove transport wiring and webhook behavior.
+  - A tiny local `.env.local` loader keeps workspace examples self-contained and avoids extra setup dependencies when the runtime already has filesystem access.
+  - Example validation can often piggyback on an existing package job with a narrow `typecheck` step instead of justifying another CI matrix entry.
 ---

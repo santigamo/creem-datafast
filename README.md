@@ -48,6 +48,7 @@ Internally the package wraps the official `creem` Core SDK, so you do not need t
 ## Compatibility
 
 - Library runtime: Node 18+
+- `example-express`: Node 18+ because it uses plain Express
 - `example-next`: Node 20.9+ because it uses Next.js 16
 - ESM-only package. Import with `import`, not `require()`.
 - Next.js Route Handlers on the Node runtime
@@ -226,15 +227,22 @@ pnpm smoke:consumer
 
 These same checks run in GitHub Actions on every push and pull request.
 
-GitHub Actions validates the root package and the Next.js example separately:
+GitHub Actions validates the root package and workspace examples like this:
 
 - `package` runs on Node 18 and 20 and checks `build`, `typecheck`, `test`, and `smoke:consumer`.
+- `package` also typechecks `example-express` on Node 18 after building the root package, so the lightweight Express example stays compatible without needing a separate job.
 - `example-next` runs on Node 20.9+ because Next.js 16 requires it, builds the root package first, then checks `typecheck` plus `build`.
 - The `example-next` CI job uses placeholder env values so it validates compilation of the workspace package integration only; it does not call real Creem or DataFast services.
 
 `pnpm smoke:consumer` packs the real `.tgz`, installs it into an isolated TypeScript consumer fixture, runs `tsc --noEmit`, and verifies the root plus `next`, `express`, and `client` subpath imports at runtime.
 
-Example app:
+Runnable examples:
+
+```bash
+cp example-express/.env.example example-express/.env.local
+pnpm build
+pnpm --filter example-express dev
+```
 
 ```bash
 cp example-next/.env.example example-next/.env.local
@@ -242,19 +250,21 @@ pnpm build
 pnpm --filter example-next dev
 ```
 
-`example-next` consumes the built workspace package from the repository root, so rerun `pnpm build` after changing library source before restarting or rebuilding the example.
+Both examples consume the built workspace package from the repository root, so rerun `pnpm build` after changing library source before restarting or rebuilding either example.
+
+For `example-express`, open `http://localhost:3000` and use the landing page button to start a checkout. For `example-next`, use the same port and flow as before.
 
 Then configure the Creem webhook endpoint to `http://localhost:3000/api/webhook/creem` through your tunnel of choice.
 
 ### Verified Local Flow
 
-1. Copy `example-next/.env.example` to `example-next/.env.local` and fill in real Creem and DataFast test credentials.
+1. Copy either `example-express/.env.example` or `example-next/.env.example` into the matching `.env.local` file and fill in real Creem and DataFast test credentials.
 2. Run `pnpm build` at the repository root so `dist/` reflects your current library changes.
-3. Start the example with `pnpm --filter example-next dev`.
+3. Start the example with `pnpm --filter example-express dev` or `pnpm --filter example-next dev`.
 4. Expose `http://localhost:3000` through a tunnel such as `ngrok http 3000`.
 5. Set the Creem webhook endpoint to `https://<your-tunnel>/api/webhook/creem`.
 6. Open the example app, start a checkout, and complete a payment in Creem test mode.
-7. Expect the example server logs to show the webhook result and the payload forwarded to DataFast.
+7. Expect the example server logs to show the payload forwarded to DataFast; the Next example also logs processed versus ignored webhook outcomes explicitly.
 
 ## Production Idempotency
 
