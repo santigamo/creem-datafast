@@ -273,10 +273,6 @@ Next.js helpers:
 - `createNextWebhookHandler(client, options?)`
 - `handleWebhookRequest(client, request)`
 
-## Adoption Note
-
-This package is designed for easy adoption under `@creem_io/datafast` or any official Creem scope. The architecture keeps core logic separate from framework adapters to simplify future maintenance and namespace migration.
-
 ## Integrate with AI Agents
 
 Paste this prompt into Claude Code, Cursor, Codex, or any AI coding agent:
