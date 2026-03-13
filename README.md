@@ -8,7 +8,7 @@ Connect Creem payments to DataFast analytics without writing any glue code. One 
 
 - **Zero glue code** — one factory call wires up checkout attribution and webhook forwarding
 - **Framework adapters** — Next.js App Router and Express 5 out of the box, or bring your own
-- **Production-ready** — idempotent webhooks, retries with backoff, timing-safe signature verification
+- **Production-ready** — idempotent webhooks, retries with backoff, Web Crypto signature verification
 - **Refund support** — forwards `refund.created` as `refunded: true` payment events
 - **Currency-aware** — correctly converts zero-decimal (JPY) and three-decimal (KWD) currencies
 
@@ -71,9 +71,11 @@ Internally the package wraps the official `creem` Core SDK, so you do not need t
 ## Compatibility
 
 - Library runtime: Node 18+
+- Framework-agnostic core is smoke-validated on Cloudflare Workers and Bun
 - `example-express`: Node 18+ because it uses plain Express
 - `example-next`: Node 20.9+ because it uses Next.js 16
 - ESM-only package. Import with `import`, not `require()`.
+- Next.js and Express adapters are Node-runtime integrations
 - Next.js Route Handlers on the Node runtime
 - Express webhook routes using `express.raw({ type: "application/json" })`
 - Supported webhook events: `checkout.completed`, `subscription.paid`, `refund.created`
@@ -176,7 +178,7 @@ const creemDataFast = createCreemDataFast({
   testMode: true
 });
 
-// Works with any Node.js framework: Hono, Fastify, Koa, etc.
+// Works with any Node.js framework, and the core flow is smoke-validated on Cloudflare Workers.
 async function handleCreemWebhook(rawBody: string, headers: Record<string, string>) {
   try {
     const result = await creemDataFast.handleWebhook({ rawBody, headers });
@@ -291,6 +293,8 @@ GitHub Actions validates the root package and workspace examples like this:
 
 - `package` runs on Node 18 and 20 and checks `build`, `typecheck`, `test`, and `smoke:consumer`.
 - `package` also typechecks `example-express` on Node 18 after building the root package, so the lightweight Express example stays compatible without needing a separate job.
+- `cloudflare-workers-smoke` runs the built root package inside workerd via a bundled Cloudflare Worker smoke.
+- `bun-smoke` packs the real tarball, installs it into an isolated Bun fixture, and exercises the async signature + webhook core flow.
 - `example-next` runs on Node 20.9+ because Next.js 16 requires it, builds the root package first, then checks `typecheck` plus `build`.
 - The `example-next` CI job uses placeholder env values so it validates compilation of the workspace package integration only; it does not call real Creem or DataFast services.
 - `pnpm test` now includes an automated integration test that boots the real `example-express` app over HTTP and covers the full server-side attribution flow with stubbed Creem/DataFast edges.
@@ -374,7 +378,7 @@ Root API:
 - `createCreemDataFast(options)`
 - `client.createCheckout(params, context?)`
 - `client.handleWebhook({ rawBody, headers })`
-- `client.verifyWebhookSignature(rawBody, headers)` returns `true` or `false` for signature validity and throws `InvalidCreemSignatureError` when `creem-signature` is missing.
+- `await client.verifyWebhookSignature(rawBody, headers)` resolves to `true` or `false` for signature validity and throws `InvalidCreemSignatureError` when `creem-signature` is missing.
 
 Error classes:
 

@@ -1,0 +1,8 @@
+{
+  "name": "consumer-bun-smoke",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "smoke:runtime": "bun run runtime.mjs"
+  }
+}

@@ -27,7 +27,7 @@ describe("createExpressWebhookHandler", () => {
           transaction_id: "txn_123"
         }
       })),
-      verifyWebhookSignature: vi.fn()
+      verifyWebhookSignature: vi.fn(async () => true)
     })({
       body: Buffer.from("{}"),
       headers: {}
@@ -51,7 +51,7 @@ describe("createExpressWebhookHandler", () => {
       handleWebhook: vi.fn(async () => {
         throw new InvalidCreemSignatureError("bad");
       }),
-      verifyWebhookSignature: vi.fn()
+      verifyWebhookSignature: vi.fn(async () => true)
     })({
       body: "{}",
       headers: {}

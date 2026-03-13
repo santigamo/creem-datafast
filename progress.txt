@@ -1,4 +1,6 @@
 ## Codebase Patterns
+- Cloudflare Worker smoke coverage should bundle the built package first and run that bundle in Miniflare/workerd with `modulesRoot` set to the temp bundle dir; direct execution from `dist/` can fail before the package code runs.
+- Webhook signature verification is async end-to-end and uses Web Crypto, so docs/examples/tests must always `await verifyWebhookSignature()`.
 - Injectable third-party clients should expose a small public interface instead of `unknown`, and that type should stay aligned with the runtime validator.
 - Runtime integration coverage for runnable examples should boot the real app and inject a real `createCreemDataFast()` client while faking only the external Creem/DataFast edges.
 - Runnable example factories that accept injected clients should also accept injected route config, and runtime tests that cross the package boundary should construct clients from the published package surface so error-class `instanceof` checks stay aligned.
@@ -204,6 +206,16 @@
 - Files changed: `README.md`, `AGENTS.md`
 - **Learnings for future iterations:**
   - Be explicit when a CI job is compile-only with dummy env so reviewers do not mistake it for an end-to-end integration signal.
+---
+## 2026-03-13 17:34 CET - webcrypto-workers-bun-validation
+- Replaced `node:crypto` webhook signature verification with async Web Crypto, updated the public `verifyWebhookSignature()` contract to `Promise<boolean>`, and added malformed-signature plus missing-Web-Crypto coverage.
+- Added a Cloudflare Worker smoke that bundles the built package with esbuild and runs it inside Miniflare/workerd, plus a Bun packaged-consumer smoke and CI jobs for both validations.
+- Tightened the README compatibility/docs around async verification, Worker/Bun smoke coverage, and the Node-only scope of the Next.js and Express adapters; also corrected the Express example copy to reflect the real webhook status contract.
+- Files changed: `src/core/signature.ts`, `src/core/types.ts`, `src/core/webhook.ts`, `src/index.ts`, `src/core/creem-client.ts`, `tests/unit/signature.test.ts`, `tests/unit/express-adapter.test.ts`, `tests/unit/next-adapter.test.ts`, `tests/unit/example-express-app.test.ts`, `scripts/smoke-cloudflare-worker.mjs`, `scripts/smoke-bun-consumer.mjs`, `tests/smoke/consumer-bun/*`, `package.json`, `pnpm-lock.yaml`, `.github/workflows/ci.yml`, `README.md`, `example-express/src/app.ts`, `AGENTS.md`
+- **Learnings for future iterations:**
+  - Web Crypto `subtle.verify()` expects an `ArrayBuffer`-compatible `BufferSource`; normalizing `Uint8Array` inputs with an explicit `ArrayBuffer` helper avoids the TypeScript `SharedArrayBuffer` mismatch.
+  - Miniflare/workerd is a good Cloudflare validation target, but for npm-based libraries the smoke should run a bundled worker artifact rather than pointing workerd directly at `dist/`.
+  - Bun is optional for local development here; keep the Bun smoke script self-checking and let CI provide the runtime when it is not installed on the workstation.
 ---
 ## 2026-03-13 12:42 - example-workspace-exports
 - Migrated `example-next` to consume the built root workspace package via normal package exports, removed direct source aliases and the custom webpack config, and made CI build the root package before validating the example.

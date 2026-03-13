@@ -23,7 +23,7 @@ function createClient(
         transaction_id: "txn_123"
       }
     })),
-    verifyWebhookSignature: vi.fn(),
+    verifyWebhookSignature: vi.fn(async () => true),
     ...overrides
   };
 }

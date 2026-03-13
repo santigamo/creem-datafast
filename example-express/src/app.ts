@@ -228,7 +228,7 @@ function renderPage(): string {
           <h2>What to verify</h2>
           <ul>
             <li>Server logs show the DataFast payload in development.</li>
-            <li>Webhook requests return <code>200 OK</code> only when the signature matches.</li>
+            <li>Webhook requests return <code>400</code> for invalid signatures, <code>500</code> for unexpected failures, and <code>200 OK</code> when delivery is accepted or intentionally ignored.</li>
             <li>The payment appears in DataFast with the transaction and attribution fields.</li>
           </ul>
         </article>

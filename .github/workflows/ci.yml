@@ -46,6 +46,62 @@ jobs:
       - name: Packaged consumer smoke test
         run: pnpm smoke:consumer
 
+  cloudflare-workers-smoke:
+    name: Cloudflare Workers Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Cloudflare Worker smoke test
+        run: pnpm smoke:cloudflare-worker
+
+  bun-smoke:
+    name: Bun Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bun packaged consumer smoke test
+        run: pnpm smoke:bun
+
   example-next:
     name: Example Next.js (Node 20.9+)
     runs-on: ubuntu-latest

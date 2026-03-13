@@ -55,7 +55,7 @@ export async function handleWebhook(
     throw new InvalidCreemSignatureError("Missing creem-signature header.");
   }
 
-  if (!verifyCreemSignature(params.rawBody, dependencies.creemWebhookSecret, signature)) {
+  if (!await verifyCreemSignature(params.rawBody, dependencies.creemWebhookSecret, signature)) {
     throw new InvalidCreemSignatureError("Invalid Creem webhook signature.");
   }
 

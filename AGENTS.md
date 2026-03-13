@@ -16,6 +16,7 @@
 - If the package exposes an injectable third-party client like `creemClient`, give it a small public TypeScript interface and keep that type aligned with the runtime validator.
 - Runtime error classes that consumers are expected to branch on with `instanceof` should be exported from the root package.
 - The published package is ESM-only; keep README compatibility notes and package exports aligned so consumers do not assume `require()` support.
+- Webhook signature verification uses Web Crypto and is async end-to-end; docs, examples, and tests should always `await verifyWebhookSignature()`.
 - For Next.js custom webhook responses, prefer `handleWebhookRequest()` from `creem-datafast/next`; it shares the adapter path and consumes the `Request` body stream once.
 - Runnable examples that use low-level helpers must demonstrate the required error mapping contract, not only the success path.
 - Creem SDK transaction hydration uses numeric `createdAt` / `created_at` timestamps in milliseconds; fixtures should match that format so hydration tests catch unit mistakes.
@@ -31,6 +32,7 @@
 - When `next build` updates `example-next/tsconfig.json` or `example-next/next-env.d.ts` with mandatory Next.js TypeScript settings, keep those generated changes so future builds stay clean.
 - Example-app CI may use placeholder env vars strictly to prove the app typechecks/builds; keep that documented so nobody reads the example job as a live integration check.
 - Keep GitHub Actions JavaScript actions on majors that support the current runner runtime; `actions/checkout@v5` and `actions/setup-node@v5` avoid the Node 20 deprecation warning.
+- Cloudflare Worker smoke coverage should bundle the built package first and run that bundle in Miniflare/workerd with `modulesRoot` pointed at the temp bundle directory; direct `dist/` execution can fail on npm resolution and worker path normalization before the package code runs.
 - The root `SKILL.md` is consumer-facing documentation for AI coding agents; keep it aligned with the README quickstarts and the supported Next.js / Express integration patterns.
 - Distribution regressions are easiest to catch by installing the packed `.tgz` into an isolated consumer fixture; keep `pnpm smoke:consumer` aligned with the published exports and subpaths.
 - If the README documents a root-level import from `creem-datafast`, cover that symbol in the packaged smoke consumer so docs and published exports cannot drift silently.

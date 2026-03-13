@@ -22,7 +22,7 @@ describe("createNextWebhookHandler", () => {
           transaction_id: "txn_123"
         }
       })),
-      verifyWebhookSignature: vi.fn()
+      verifyWebhookSignature: vi.fn(async () => true)
     });
 
     const response = await handler(new Request("https://example.com", {
@@ -39,7 +39,7 @@ describe("createNextWebhookHandler", () => {
       handleWebhook: vi.fn(async () => {
         throw new InvalidCreemSignatureError("bad");
       }),
-      verifyWebhookSignature: vi.fn()
+      verifyWebhookSignature: vi.fn(async () => true)
     });
 
     const response = await handler(new Request("https://example.com", {
@@ -79,7 +79,7 @@ describe("handleWebhookRequest", () => {
     const response = await handleWebhookRequest({
       createCheckout: vi.fn(),
       handleWebhook,
-      verifyWebhookSignature: vi.fn()
+      verifyWebhookSignature: vi.fn(async () => true)
     }, request);
 
     expect(response).toBe(result);
@@ -97,7 +97,7 @@ describe("handleWebhookRequest", () => {
       handleWebhook: vi.fn(async () => {
         throw error;
       }),
-      verifyWebhookSignature: vi.fn()
+      verifyWebhookSignature: vi.fn(async () => true)
     }, new Request("https://example.com", {
       body: "{}",
       method: "POST"

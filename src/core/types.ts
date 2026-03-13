@@ -233,7 +233,7 @@ export interface CreemDataFastClient {
   verifyWebhookSignature(
     rawBody: string,
     headers: HeadersLike
-  ): boolean;
+  ): Promise<boolean>;
 }
 
 export interface NextWebhookHandlerOptions {
