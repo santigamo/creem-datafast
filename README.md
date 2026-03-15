@@ -17,6 +17,26 @@
 
 Connect Creem payments to DataFast analytics without writing any glue code. One factory, automatic cookie capture, webhook forwarding.
 
+## Table of Contents
+
+- [How It Works](#how-it-works)
+- [Judge in 2 minutes](#judge-in-2-minutes)
+- [Integrate with AI Agents](#integrate-with-ai-agents)
+- [Installation](#installation)
+- [Quickstart](#quickstart)
+  - [Next.js](#nextjs)
+  - [Express](#express)
+  - [Framework-Agnostic](#framework-agnostic)
+  - [Client-Side Helper](#client-side-helper)
+- [Advanced](#advanced)
+  - [Custom webhook response logic (Next.js)](#custom-webhook-response-logic-nextjs)
+  - [Idempotency](#idempotency)
+- [Configuration](#configuration)
+- [API Reference](#api-reference)
+- [Troubleshooting](#troubleshooting)
+- [Compatibility](#compatibility)
+- [Development](#development)
+
 - **Zero glue code** — one factory call wires up checkout attribution and webhook forwarding
 - **Framework adapters** — Next.js App Router and Express 5 out of the box, or bring your own
 - **Production-ready** — idempotent webhooks, retries with backoff, Web Crypto signature verification
