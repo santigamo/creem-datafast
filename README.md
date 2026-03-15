@@ -1,9 +1,13 @@
-<table align="center" border="0" cellspacing="0" cellpadding="0"><tr>
-  <td><img src="docs/assets/creemlogo_black_full.svg" alt="Creem" height="40"></td>
-  <td>&nbsp;&nbsp;&nbsp;×&nbsp;&nbsp;&nbsp;</td>
-  <td><img src="docs/assets/icon.webp" alt="DataFast" height="30"></td>
-  <td>&nbsp;<b>DataFast</b></td>
-</tr></table>
+<p align="center">
+  <picture>
+    <img src="docs/assets/creemlogo_black_full.svg" alt="Creem" height="40" align="middle">
+  </picture>
+  &nbsp;&nbsp;×&nbsp;&nbsp;
+  <picture>
+    <img src="docs/assets/icon.webp" alt="DataFast" height="30" align="middle">
+  </picture>
+  <b>DataFast</b>
+</p>
 
 # creem-datafast
 
