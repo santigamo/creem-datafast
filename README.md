@@ -1,11 +1,9 @@
 <p align="center">
-  <picture>
-    <img src="docs/assets/creemlogo_black_full.svg" alt="Creem" height="40" align="middle">
-  </picture>
-  &nbsp;&nbsp;×&nbsp;&nbsp;
-  <picture>
-    <img src="docs/assets/icon.webp" alt="DataFast" height="30" align="middle">
-  </picture>
+  <img src="docs/assets/creemlogo_black_full.svg" alt="Creem" height="40">
+  <br>
+  <sub>×</sub>
+  <br>
+  <img src="docs/assets/icon.webp" alt="DataFast" height="30">
   <b>DataFast</b>
 </p>
 
