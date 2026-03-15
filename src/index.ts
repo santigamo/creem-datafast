@@ -44,6 +44,7 @@ export {
 
 export { MemoryIdempotencyStore } from "./core/idempotency.js";
 
+/** Creates a configured client that captures DataFast tracking at checkout and forwards verified Creem webhooks. */
 export function createCreemDataFast(options: CreemDataFastOptions): CreemDataFastClient {
   const logger = resolveLogger(options.logger);
   const creem = createCreemClient(options);

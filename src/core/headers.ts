@@ -31,26 +31,3 @@ export function getHeaderValue(headers: HeadersLike, name: string): string | und
 
   return undefined;
 }
-
-export function getHeaderValues(headers: HeadersLike, name: string): string[] {
-  if (isHeadersInstance(headers)) {
-    const value = headers.get(name) ?? headers.get(name.toLowerCase());
-    return value ? [value] : [];
-  }
-
-  const expected = name.toLowerCase();
-
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() !== expected) {
-      continue;
-    }
-
-    if (typeof value === "string") {
-      return [value];
-    }
-
-    return value ?? [];
-  }
-
-  return [];
-}

@@ -185,16 +185,22 @@ export interface CreemDataFastOptions {
   creemClient?: CreemSdkClientLike;
   creemWebhookSecret: string;
   datafastApiKey: string;
+  /** Target Creem test API (`https://test-api.creem.io`). Defaults to `false`. */
   testMode?: boolean;
+  /** Capture `datafast_session_id` alongside visitor ID. Defaults to `true`. */
   captureSessionId?: boolean;
+  /** Fetch full transaction details for `subscription.paid` events. Defaults to `true`. */
   hydrateTransactionOnSubscriptionPaid?: boolean;
   strictTracking?: boolean;
+  /** TTL (seconds) for in-flight webhook claims. Defaults to `300`. */
   idempotencyInFlightTtlSeconds?: number;
+  /** TTL (seconds) for completed webhook records. Defaults to `86400`. */
   idempotencyProcessedTtlSeconds?: number;
   logger?: LoggerLike;
   idempotencyStore?: IdempotencyStore;
   timeoutMs?: number;
   retry?: RetryConfig;
+  /** Custom fetch implementation for DataFast requests (useful for testing or edge runtimes). */
   fetch?: typeof globalThis.fetch;
 }
 

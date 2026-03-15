@@ -1,9 +1,17 @@
+<p align="center">
+  <img src="docs/assets/creemlogo_black_full.svg" alt="Creem" height="40" style="vertical-align: middle;">
+  &nbsp;&nbsp;&nbsp;<span style="vertical-align: middle; font-size: 24px;">×</span>&nbsp;&nbsp;&nbsp;
+  <img src="docs/assets/icon.webp" alt="DataFast" height="30" style="vertical-align: middle;">
+  <b style="vertical-align: middle;">DataFast</b>
+</p>
+
 # creem-datafast
 
 [![CI](https://github.com/santigamo/creem-datafast/actions/workflows/ci.yml/badge.svg)](https://github.com/santigamo/creem-datafast/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/creem-datafast.svg)](https://www.npmjs.com/package/creem-datafast)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
-[![Coverage](https://img.shields.io/badge/coverage-88%25-brightgreen.svg)](https://github.com/santigamo/creem-datafast/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen.svg)](https://github.com/santigamo/creem-datafast/actions/workflows/ci.yml)
 
 Connect Creem payments to DataFast analytics without writing any glue code. One factory, automatic cookie capture, webhook forwarding.
 
@@ -322,6 +330,11 @@ Constructor options for `createCreemDataFast()`:
 - `idempotencyStore`: custom `IdempotencyStore` for distributed deduplication.
 - `logger`: inject a custom logger implementing `{ debug, info, warn, error }`.
 - `creemClient`: inject a pre-configured Creem SDK instance instead of using `creemApiKey`.
+- `captureSessionId`: also capture `datafast_session_id` from cookies and query parameters. Defaults to `true`.
+- `hydrateTransactionOnSubscriptionPaid`: fetch the full Creem transaction for `subscription.paid` webhooks to get exact amount and timestamp. Falls back to product pricing on failure. Defaults to `true`.
+- `idempotencyInFlightTtlSeconds`: seconds before an in-flight webhook claim expires, allowing redelivery. Defaults to `300`.
+- `idempotencyProcessedTtlSeconds`: seconds before a completed webhook record expires. Defaults to `86400`.
+- `fetch`: inject a custom `fetch` implementation for DataFast requests.
 
 ## API Reference
 

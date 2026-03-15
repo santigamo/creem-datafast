@@ -468,3 +468,17 @@
   - Example-only browser script config should be read through an optional path so the landing page stays renderable even when checkout/webhook env vars are absent.
   - Runnable examples are part of the product narrative, so parity regressions deserve direct HTML assertions, not just prose in the README.
 ---
+
+## 2026-03-15 - Polish: dead code, tests, JSDoc, README config, npm badge
+- Removed `getHeaderValues()` dead code from `src/core/headers.ts`
+- Added 10 unit tests for `hydrateTransaction()` in `tests/unit/transaction.test.ts`
+- Added JSDoc to `createCreemDataFast()` and `CreemDataFastOptions` fields
+- Documented 5 missing config options in README (captureSessionId, hydrateTransactionOnSubscriptionPaid, idempotencyInFlightTtlSeconds, idempotencyProcessedTtlSeconds, fetch)
+- Added npm version badge to README
+- Updated coverage badge from 88% to 90%
+- Files changed: `src/core/headers.ts`, `src/index.ts`, `src/core/types.ts`, `README.md`, `tests/unit/transaction.test.ts` (new)
+- **Learnings for future iterations:**
+  - `getHeaderValues` was exported but never imported — safe to remove
+  - `toIsoTimestamp` handles seconds vs ms via `> 1e12` threshold
+  - Coverage went from 88% to 90.68% with transaction tests + dead code removal
+---
