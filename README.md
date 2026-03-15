@@ -1,9 +1,9 @@
-<p align="center">
-  <img src="docs/assets/creemlogo_black_full.svg" alt="Creem" height="40" style="vertical-align: middle;">
-  &nbsp;&nbsp;&nbsp;<span style="vertical-align: middle; font-size: 24px;">×</span>&nbsp;&nbsp;&nbsp;
-  <img src="docs/assets/icon.webp" alt="DataFast" height="30" style="vertical-align: middle;">
-  <b style="vertical-align: middle;">DataFast</b>
-</p>
+<table align="center" border="0" cellspacing="0" cellpadding="0"><tr>
+  <td><img src="docs/assets/creemlogo_black_full.svg" alt="Creem" height="40"></td>
+  <td>&nbsp;&nbsp;&nbsp;×&nbsp;&nbsp;&nbsp;</td>
+  <td><img src="docs/assets/icon.webp" alt="DataFast" height="30"></td>
+  <td>&nbsp;<b>DataFast</b></td>
+</tr></table>
 
 # creem-datafast
 
